@@ -12,14 +12,17 @@ export type HubConfig = {
   longitude: number;
   /** Optional short label shown under the temperature. */
   locationLabel: string;
+  /** Household postal code (for reference / future use). */
+  postalCode: string;
 };
 
 const defaults: HubConfig = {
   weekStartsOn: "sunday",
   timeZone: "America/Chicago",
-  latitude: 41.8781,
-  longitude: -87.6298,
-  locationLabel: "Home",
+  latitude: 33.16262,
+  longitude: -96.93751,
+  locationLabel: "Little Elm",
+  postalCode: "75068",
 };
 
 function normalizeWeekStartsOn(value: unknown): WeekStartsOn {
@@ -49,6 +52,11 @@ export const hubConfig: HubConfig = {
     (rawConfig as { locationLabel: string }).locationLabel.trim()
       ? (rawConfig as { locationLabel: string }).locationLabel.trim()
       : defaults.locationLabel,
+  postalCode:
+    typeof (rawConfig as { postalCode?: unknown }).postalCode === "string" &&
+    (rawConfig as { postalCode: string }).postalCode.trim()
+      ? (rawConfig as { postalCode: string }).postalCode.trim()
+      : defaults.postalCode,
 };
 
 /** JS getDay() index for the configured week start (0 = Sunday, 1 = Monday). */

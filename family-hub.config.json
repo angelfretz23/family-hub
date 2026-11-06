@@ -1,7 +1,8 @@
 {
   "weekStartsOn": "sunday",
   "timeZone": "America/Chicago",
-  "latitude": 41.8781,
-  "longitude": -87.6298,
-  "locationLabel": "Chicago"
+  "latitude": 33.16262,
+  "longitude": -96.93751,
+  "locationLabel": "Little Elm",
+  "postalCode": "75068"
 }

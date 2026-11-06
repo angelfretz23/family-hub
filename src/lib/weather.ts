@@ -39,9 +39,9 @@ export async function fetchWeather(
   config = hubConfig,
 ): Promise<WeatherSnapshot> {
   const latitude =
-    typeof config.latitude === "number" ? config.latitude : 41.8781;
+    typeof config.latitude === "number" ? config.latitude : 33.16262;
   const longitude =
-    typeof config.longitude === "number" ? config.longitude : -87.6298;
+    typeof config.longitude === "number" ? config.longitude : -96.93751;
   const timeZone = config.timeZone || "America/Chicago";
 
   const url = new URL("https://api.open-meteo.com/v1/forecast");

@@ -40,15 +40,16 @@ Edit `family-hub.config.json`:
 {
   "weekStartsOn": "sunday",
   "timeZone": "America/Chicago",
-  "latitude": 41.8781,
-  "longitude": -87.6298,
-  "locationLabel": "Chicago"
+  "latitude": 33.16262,
+  "longitude": -96.93751,
+  "locationLabel": "Little Elm",
+  "postalCode": "75068"
 }
 ```
 
 - `weekStartsOn`: `"sunday"` or `"monday"` — Week and Month calendars
 - `timeZone`: IANA zone for the Knights greeting, live clock, and household “now”
-- `latitude` / `longitude` / `locationLabel`: Open-Meteo weather on the Today header
+- `latitude` / `longitude` / `locationLabel` / `postalCode`: Open-Meteo weather on the Today header
 
 Restart the dev server after changing this file.
 
