@@ -24,6 +24,7 @@ export default function TodayPage() {
   ensureRoutinesSeeded();
 
   const people = listPeople(true);
+  const kids = people.filter((person) => person.role === "child");
   const events = listEventsForToday();
   const rules = listRules(true);
   const dateKey = toDateKey(new Date());
@@ -34,7 +35,7 @@ export default function TodayPage() {
       <TodayHeader dateLabel={formatDayHeading(new Date())} rules={rules} />
 
       <PersonCards
-        people={people}
+        people={kids}
         showJobStats
         jobStats={jobStats}
         variant="portrait"
