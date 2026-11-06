@@ -23,8 +23,9 @@ export const HubMain = styled.main`
 `;
 
 export const Page = styled.div`
-  max-width: 88rem;
-  margin: 0 auto;
+  width: 100%;
+  max-width: none;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;

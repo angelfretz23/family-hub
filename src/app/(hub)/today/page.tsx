@@ -33,7 +33,12 @@ export default function TodayPage() {
     <Page>
       <TodayHeader dateLabel={formatDayHeading(new Date())} rules={rules} />
 
-      <PersonCards people={people} showJobStats jobStats={jobStats} />
+      <PersonCards
+        people={people}
+        showJobStats
+        jobStats={jobStats}
+        variant="portrait"
+      />
 
       <TodayGrid>
         <TodaySchedule people={people} events={events} dateKey={dateKey} />
