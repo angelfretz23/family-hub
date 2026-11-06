@@ -1,6 +1,7 @@
 import rawConfig from "../../family-hub.config.json";
 
 export type WeekStartsOn = "sunday" | "monday";
+export type TemperatureUnit = "F" | "C";
 
 export type HubConfig = {
   /** First day of the week in Week/Month calendars. */
@@ -14,6 +15,8 @@ export type HubConfig = {
   locationLabel: string;
   /** Household postal code (for reference / future use). */
   postalCode: string;
+  /** Display / fetch temperature unit. Defaults to Fahrenheit. */
+  temperatureUnit: TemperatureUnit;
 };
 
 const defaults: HubConfig = {
@@ -23,40 +26,37 @@ const defaults: HubConfig = {
   longitude: -96.93751,
   locationLabel: "Little Elm",
   postalCode: "75068",
+  temperatureUnit: "F",
 };
 
 function normalizeWeekStartsOn(value: unknown): WeekStartsOn {
   return value === "monday" ? "monday" : "sunday";
 }
 
+function normalizeTemperatureUnit(value: unknown): TemperatureUnit {
+  if (typeof value !== "string") return defaults.temperatureUnit;
+  const normalized = value.trim().toUpperCase();
+  return normalized === "C" ? "C" : "F";
+}
+
 function asNumber(value: unknown, fallback: number) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
 
+function asString(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+const raw = rawConfig as Record<string, unknown>;
+
 export const hubConfig: HubConfig = {
-  weekStartsOn: normalizeWeekStartsOn(rawConfig.weekStartsOn),
-  timeZone:
-    typeof rawConfig.timeZone === "string" && rawConfig.timeZone.trim()
-      ? rawConfig.timeZone.trim()
-      : defaults.timeZone,
-  latitude: asNumber(
-    (rawConfig as { latitude?: unknown }).latitude,
-    defaults.latitude,
-  ),
-  longitude: asNumber(
-    (rawConfig as { longitude?: unknown }).longitude,
-    defaults.longitude,
-  ),
-  locationLabel:
-    typeof (rawConfig as { locationLabel?: unknown }).locationLabel === "string" &&
-    (rawConfig as { locationLabel: string }).locationLabel.trim()
-      ? (rawConfig as { locationLabel: string }).locationLabel.trim()
-      : defaults.locationLabel,
-  postalCode:
-    typeof (rawConfig as { postalCode?: unknown }).postalCode === "string" &&
-    (rawConfig as { postalCode: string }).postalCode.trim()
-      ? (rawConfig as { postalCode: string }).postalCode.trim()
-      : defaults.postalCode,
+  weekStartsOn: normalizeWeekStartsOn(raw.weekStartsOn),
+  timeZone: asString(raw.timeZone, defaults.timeZone),
+  latitude: asNumber(raw.latitude, defaults.latitude),
+  longitude: asNumber(raw.longitude, defaults.longitude),
+  locationLabel: asString(raw.locationLabel, defaults.locationLabel),
+  postalCode: asString(raw.postalCode, defaults.postalCode),
+  temperatureUnit: normalizeTemperatureUnit(raw.temperatureUnit),
 };
 
 /** JS getDay() index for the configured week start (0 = Sunday, 1 = Monday). */

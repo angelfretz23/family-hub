@@ -1,0 +1,3 @@
+
+Meteocons (Bas Milius) — MIT License
+https://github.com/basmilius/weather-icons

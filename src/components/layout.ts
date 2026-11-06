@@ -63,13 +63,14 @@ export const WeatherChip = styled.div`
   justify-content: center;
   gap: 0.12rem;
   min-width: 10rem;
+  max-width: 22rem;
   text-align: right;
 `;
 
 export const WeatherTemp = styled.span`
   font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 1.65rem;
-  line-height: 1;
+  font-size: clamp(1.25rem, 2vw, 1.65rem);
+  line-height: 1.15;
   font-weight: 650;
 `;
 

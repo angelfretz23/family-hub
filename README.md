@@ -43,13 +43,16 @@ Edit `family-hub.config.json`:
   "latitude": 33.16262,
   "longitude": -96.93751,
   "locationLabel": "Little Elm",
-  "postalCode": "75068"
+  "postalCode": "75068",
+  "temperatureUnit": "F"
 }
 ```
 
 - `weekStartsOn`: `"sunday"` or `"monday"` — Week and Month calendars
 - `timeZone`: IANA zone for the Knights greeting, live clock, and household “now”
 - `latitude` / `longitude` / `locationLabel` / `postalCode`: Open-Meteo weather on the Today header
+- `temperatureUnit`: `"F"` (default) or `"C"`
+- Weather icons: Meteocons (Bas Milius) in `public/meteocons/`
 
 Restart the dev server after changing this file.
 
