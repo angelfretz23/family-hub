@@ -187,6 +187,34 @@ export function householdHour(date = new Date()) {
   return Number(hourText);
 }
 
+/** Minutes since local midnight in the household timezone. */
+export function householdMinutesSinceMidnight(date = new Date()) {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "numeric",
+    hour12: false,
+    timeZone: hubConfig.timeZone,
+  }).formatToParts(date);
+  const hour = Number(parts.find((part) => part.type === "hour")?.value ?? "0");
+  const minute = Number(
+    parts.find((part) => part.type === "minute")?.value ?? "0",
+  );
+  // Some environments emit "24" for midnight
+  const normalizedHour = hour === 24 ? 0 : hour;
+  return normalizedHour * 60 + minute;
+}
+
+/** Floor a minute-of-day value to the previous 15-minute mark. */
+export function floorToQuarterHour(minutes: number) {
+  return Math.floor(minutes / 15) * 15;
+}
+
+/** Minutes since midnight for a local ISO / date-key datetime string. */
+export function minutesFromLocalIso(value: string) {
+  const date = parseLocalIso(value);
+  return date.getHours() * 60 + date.getMinutes();
+}
+
 /** Household greeting for the Today header (Modern Day Knight theme). */
 export function knightGreeting(date = new Date()) {
   const hour = householdHour(date);

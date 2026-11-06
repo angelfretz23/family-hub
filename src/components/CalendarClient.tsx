@@ -16,6 +16,7 @@ import {
 } from "@/lib/dates";
 import { CalendarMonthView } from "@/components/CalendarMonthView";
 import { CalendarWeekView } from "@/components/CalendarWeekView";
+import { DayTimeline } from "@/components/DayTimeline";
 import { EventCard } from "@/components/EventCard";
 import { EventEditor } from "@/components/EventEditor";
 import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
@@ -92,6 +93,13 @@ const Toolbar = styled.div`
 `;
 
 const MonthFill = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+`;
+
+const DayFill = styled.div`
   flex: 1;
   min-height: 0;
   display: flex;
@@ -310,15 +318,17 @@ export function CalendarClient({
       ) : null}
 
       {view === "day" ? (
-        <Stack>
-          {dayEvents.length === 0 ? (
-            <Empty>Nothing on this day for this filter.</Empty>
-          ) : (
-            dayEvents.map((event) => (
-              <EventCard key={event.id} event={event} onOpen={setEditing} />
-            ))
-          )}
-        </Stack>
+        <DayFill>
+          <DayTimeline
+            people={
+              selectedIds.length === 0
+                ? people
+                : people.filter((person) => selectedIds.includes(person.id))
+            }
+            events={dayEvents}
+            onOpenEvent={setEditing}
+          />
+        </DayFill>
       ) : null}
 
       {view === "week" ? (

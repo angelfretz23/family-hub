@@ -5,7 +5,7 @@ import Link from "next/link";
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
 import type { EventWithPeople } from "@/lib/events";
-import { EventCard } from "@/components/EventCard";
+import { DayTimeline } from "@/components/DayTimeline";
 import { EventEditor } from "@/components/EventEditor";
 
 const Panel = styled.section`
@@ -65,18 +65,6 @@ const CalendarLink = styled(Link)`
   font-weight: 650;
 `;
 
-const Empty = styled.p`
-  margin: 0;
-  color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 1.15rem;
-`;
-
-const Stack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.65rem;
-`;
-
 type TodayScheduleProps = {
   people: Person[];
   events: EventWithPeople[];
@@ -99,15 +87,12 @@ export function TodaySchedule({ people, events, dateKey }: TodayScheduleProps) {
         </Actions>
       </Header>
 
-      {events.length === 0 ? (
-        <Empty>Nothing on the calendar for today.</Empty>
-      ) : (
-        <Stack>
-          {events.map((event) => (
-            <EventCard key={event.id} event={event} onOpen={setEditing} />
-          ))}
-        </Stack>
-      )}
+      <DayTimeline
+        people={people}
+        events={events}
+        clipPastToNow
+        onOpenEvent={setEditing}
+      />
 
       {creating || editing ? (
         <EventEditor
