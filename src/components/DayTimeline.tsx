@@ -110,14 +110,22 @@ const AllDayChip = styled.button<{ $color: string }>`
   min-height: 2.2rem;
 `;
 
-const Body = styled.div`
+const Body = styled.div<{ $nestedScroll: boolean }>`
   position: relative;
-  overflow: auto;
-  overscroll-behavior: contain;
   border: 1px solid ${({ theme }) => theme.colors.stroke};
   border-radius: ${({ theme }) => theme.sizes.radius};
   background: ${({ theme }) => theme.colors.panel};
-  max-height: min(70dvh, 48rem);
+  ${({ $nestedScroll }) =>
+    $nestedScroll
+      ? `
+    overflow: auto;
+    overscroll-behavior: auto;
+    max-height: min(70dvh, 48rem);
+  `
+      : `
+    overflow: visible;
+    max-height: none;
+  `}
 `;
 
 const Grid = styled.div<{ $columns: number; $height: number }>`
@@ -259,6 +267,11 @@ type DayTimelineProps = {
   events: EventWithPeople[];
   /** When true, hide past time before the latest 15-min mark. */
   clipPastToNow?: boolean;
+  /**
+   * When false (Today), the timeline grows with the page so wheel/touch
+   * scrolls the outer Today view. When true (Calendar Day), it scrolls inside.
+   */
+  nestedScroll?: boolean;
   onOpenEvent: (event: EventWithPeople) => void;
 };
 
@@ -266,6 +279,7 @@ export function DayTimeline({
   people,
   events,
   clipPastToNow = false,
+  nestedScroll = false,
   onOpenEvent,
 }: DayTimelineProps) {
   const nowMinutes = householdMinutesSinceMidnight();
@@ -404,7 +418,7 @@ export function DayTimeline({
       ) : null}
 
       {hasVisibleTimed || !clipPastToNow ? (
-        <Body>
+        <Body $nestedScroll={nestedScroll}>
           <Grid $columns={columns.length} $height={height}>
             <Gutter>
               {hourMarks.map((minute) => (

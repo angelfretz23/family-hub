@@ -326,6 +326,7 @@ export function CalendarClient({
                 : people.filter((person) => selectedIds.includes(person.id))
             }
             events={dayEvents}
+            nestedScroll
             onOpenEvent={setEditing}
           />
         </DayFill>
