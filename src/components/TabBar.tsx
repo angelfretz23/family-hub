@@ -12,12 +12,16 @@ const TABS = [
 ] as const;
 
 const Nav = styled.nav`
+  position: sticky;
+  bottom: 0;
+  z-index: 40;
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 0.4rem;
   padding: 0.65rem 0.75rem calc(0.65rem + env(safe-area-inset-bottom));
   background: ${({ theme }) => theme.colors.tabBg};
   border-top: 1px solid rgba(255, 250, 242, 0.08);
+  flex-shrink: 0;
 `;
 
 const TabLink = styled(Link)<{ $active: boolean }>`

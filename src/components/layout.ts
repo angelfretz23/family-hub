@@ -3,15 +3,19 @@
 import styled from "styled-components";
 
 export const HubShell = styled.div`
-  min-height: 100dvh;
+  height: 100dvh;
+  max-height: 100dvh;
+  overflow: hidden;
   display: grid;
-  grid-template-rows: 1fr auto;
+  grid-template-rows: minmax(0, 1fr) auto;
 `;
 
 export const HubMain = styled.main`
   min-height: 0;
   overflow: auto;
+  overscroll-behavior: contain;
   padding: 1.5rem 1.75rem 1rem;
+  -webkit-overflow-scrolling: touch;
 
   @media (max-width: 900px) {
     padding: 1.1rem 1rem 0.75rem;
