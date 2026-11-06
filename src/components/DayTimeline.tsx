@@ -196,10 +196,12 @@ const EventBlock = styled.button<{
   $top: number;
   $height: number;
   $color: string;
+  $leftPct: number;
+  $widthPct: number;
 }>`
   position: absolute;
-  left: 0.28rem;
-  right: 0.28rem;
+  left: calc(${({ $leftPct }) => $leftPct}% + 0.2rem);
+  width: calc(${({ $widthPct }) => $widthPct}% - 0.4rem);
   top: ${({ $top }) => $top}px;
   height: ${({ $height }) => $height}px;
   min-height: ${MIN_EVENT_HEIGHT}rem;
@@ -352,7 +354,49 @@ export function DayTimeline({
       MIN_EVENT_HEIGHT * 16,
       (Math.min(end, rangeEnd) - start) * PIXELS_PER_MINUTE,
     );
-    return { top, height: blockHeight };
+    return { top, height: blockHeight, start, end };
+  }
+
+  /** Pack overlapping events into side-by-side lanes within a person column. */
+  function packOverlaps(columnEvents: EventWithPeople[]) {
+    const laidOut = columnEvents
+      .map((event) => {
+        const layout = layoutTimed(event);
+        if (!layout) return null;
+        return { event, ...layout };
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null)
+      .sort((a, b) => a.start - b.start || a.end - b.end);
+
+    const laneEnds: number[] = [];
+    const placed = laidOut.map((item) => {
+      let lane = laneEnds.findIndex((end) => end <= item.start);
+      if (lane === -1) {
+        lane = laneEnds.length;
+        laneEnds.push(item.end);
+      } else {
+        laneEnds[lane] = item.end;
+      }
+      return { ...item, lane };
+    });
+
+    // Widen each event across how many concurrent lanes it spans visually
+    const laneCount = Math.max(1, laneEnds.length);
+    return placed.map((item) => {
+      let concurrent = 1;
+      for (const other of placed) {
+        if (other.event.id === item.event.id) continue;
+        if (other.start < item.end && other.end > item.start) {
+          concurrent = Math.max(concurrent, other.lane + 1, item.lane + 1);
+        }
+      }
+      const columnsUsed = Math.max(laneCount, concurrent);
+      return {
+        ...item,
+        leftPct: (item.lane / columnsUsed) * 100,
+        widthPct: (1 / columnsUsed) * 100,
+      };
+    });
   }
 
   const showNow =
@@ -440,34 +484,34 @@ export function DayTimeline({
                   />
                 ))}
 
-                {eventsForColumn(column)
-                  .filter((event) => !event.allDay)
-                  .map((event) => {
-                    const layout = layoutTimed(event);
-                    if (!layout) return null;
-                    const color =
-                      event.people[0]?.color ??
-                      (typeof column.color === "string"
-                        ? column.color
-                        : "#3F6F5B");
-                    return (
-                      <EventBlock
-                        key={event.id}
-                        type="button"
-                        $top={layout.top}
-                        $height={layout.height}
-                        $color={color}
-                        onClick={() => onOpenEvent(event)}
-                        title={event.title}
-                      >
-                        <EventTitle>{event.title}</EventTitle>
-                        <EventMeta>
-                          {formatTime(parseLocalIso(event.startsAt))} –{" "}
-                          {formatTime(parseLocalIso(event.endsAt))}
-                        </EventMeta>
-                      </EventBlock>
-                    );
-                  })}
+                {packOverlaps(
+                  eventsForColumn(column).filter((event) => !event.allDay),
+                ).map((item) => {
+                  const color =
+                    item.event.people[0]?.color ??
+                    (typeof column.color === "string"
+                      ? column.color
+                      : "#3F6F5B");
+                  return (
+                    <EventBlock
+                      key={item.event.id}
+                      type="button"
+                      $top={item.top}
+                      $height={item.height}
+                      $color={color}
+                      $leftPct={item.leftPct}
+                      $widthPct={item.widthPct}
+                      onClick={() => onOpenEvent(item.event)}
+                      title={item.event.title}
+                    >
+                      <EventTitle>{item.event.title}</EventTitle>
+                      <EventMeta>
+                        {formatTime(parseLocalIso(item.event.startsAt))} –{" "}
+                        {formatTime(parseLocalIso(item.event.endsAt))}
+                      </EventMeta>
+                    </EventBlock>
+                  );
+                })}
               </Column>
             ))}
 

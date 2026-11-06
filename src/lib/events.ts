@@ -270,6 +270,8 @@ export function ensureDemoEvents() {
 
 const THREE_DAY_DEMO_TITLE = "Camping trip (3-day mock)";
 const TIMED_MULTI_DAY_DEMO_TITLE = "Homeschool project weekend (timed mock)";
+const OVERLAP_DEMO_A = "Budget review (overlap mock)";
+const OVERLAP_DEMO_B = "Call with school (overlap mock)";
 
 /** Ensures layout-demo multi-day events exist (safe on existing DBs). */
 export function ensureThreeDayAllDayDemo() {
@@ -298,6 +300,67 @@ export function ensureLayoutDemoEvents() {
     .get();
   if (!hasTimed) {
     seedTimedMultiDayEvent(personIds, today);
+  }
+
+  seedParentOverlapDemo(family, today);
+}
+
+function seedParentOverlapDemo(family: Person[], today: Date) {
+  const parent1 =
+    family.find((person) => person.name === "Parent 1") ??
+    family.find((person) => person.role === "adult");
+  if (!parent1) return;
+
+  const hasA = db
+    .select()
+    .from(events)
+    .where(eq(events.title, OVERLAP_DEMO_A))
+    .get();
+  const hasB = db
+    .select()
+    .from(events)
+    .where(eq(events.title, OVERLAP_DEMO_B))
+    .get();
+  if (hasA && hasB) return;
+
+  // Midday overlap so it shows on Today after the 15-min clip.
+  if (!hasA) {
+    createEvent({
+      title: OVERLAP_DEMO_A,
+      notes: "Mock overlapping Parent 1 event (12:00–13:00).",
+      startsAt: toLocalIso(
+        new Date(today.getFullYear(), today.getMonth(), today.getDate(), 12, 0),
+      ),
+      endsAt: toLocalIso(
+        new Date(today.getFullYear(), today.getMonth(), today.getDate(), 13, 0),
+      ),
+      personIds: [parent1.id],
+    });
+  }
+  if (!hasB) {
+    createEvent({
+      title: OVERLAP_DEMO_B,
+      notes: "Mock overlapping Parent 1 event (12:30–13:30).",
+      startsAt: toLocalIso(
+        new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          12,
+          30,
+        ),
+      ),
+      endsAt: toLocalIso(
+        new Date(
+          today.getFullYear(),
+          today.getMonth(),
+          today.getDate(),
+          13,
+          30,
+        ),
+      ),
+      personIds: [parent1.id],
+    });
   }
 }
 
