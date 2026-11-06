@@ -92,8 +92,7 @@ const PortraitAvatar = styled.div<{ $color: string }>`
   aspect-ratio: 1;
   height: auto;
   flex: 0 0 auto;
-  /* ~2/3 of the 16.5rem card after padding */
-  max-height: 66%;
+  max-height: 75%;
   border-radius: 999px;
   background: ${({ $color }) => $color};
   color: #fffaf2;
