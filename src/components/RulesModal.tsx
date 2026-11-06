@@ -9,15 +9,22 @@ const Overlay = styled.div`
   inset: 0;
   z-index: 50;
   background: rgba(20, 36, 30, 0.5);
-  display: grid;
-  place-items: center;
-  padding: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  overflow: auto;
 `;
 
 const Dialog = styled.div`
   width: min(40rem, 100%);
-  max-height: min(86dvh, 52rem);
+  max-width: 100%;
+  max-height: min(90dvh, 52rem);
   overflow: auto;
+  margin: auto;
   background: ${({ theme }) => theme.colors.cream};
   border-radius: 1.5rem;
   padding: 1.5rem 1.5rem 1.35rem;
@@ -25,6 +32,7 @@ const Dialog = styled.div`
   display: flex;
   flex-direction: column;
   gap: 1.1rem;
+  flex-shrink: 0;
 `;
 
 const Header = styled.div`

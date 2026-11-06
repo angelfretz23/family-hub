@@ -12,30 +12,30 @@ const Overlay = styled.div`
   inset: 0;
   z-index: 40;
   background: rgba(20, 36, 30, 0.45);
-  display: grid;
-  place-items: end stretch;
-
-  @media (min-width: 900px) {
-    place-items: center;
-    padding: 2rem;
-  }
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: max(1rem, env(safe-area-inset-top))
+    max(1rem, env(safe-area-inset-right))
+    max(1rem, env(safe-area-inset-bottom))
+    max(1rem, env(safe-area-inset-left));
+  overflow: auto;
 `;
 
 const Sheet = styled.form`
   width: min(42rem, 100%);
-  max-height: min(92dvh, 56rem);
+  max-width: 100%;
+  max-height: min(90dvh, 56rem);
   overflow: auto;
+  margin: auto;
   background: ${({ theme }) => theme.colors.cream};
-  border-radius: 1.5rem 1.5rem 0 0;
+  border-radius: 1.5rem;
   padding: 1.25rem 1.25rem 1.5rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
   box-shadow: ${({ theme }) => theme.shadow.soft};
-
-  @media (min-width: 900px) {
-    border-radius: 1.5rem;
-  }
+  flex-shrink: 0;
 `;
 
 const Title = styled.h2`
