@@ -36,16 +36,16 @@ const WeatherStack = styled.div`
   display: inline-flex;
   align-items: stretch;
   /* room for the icon peeking past the chip corner */
-  margin-top: 0.85rem;
-  margin-left: 1rem;
+  margin-top: 1.7rem;
+  margin-left: 2rem;
 `;
 
 const WeatherIcon = styled.img`
   position: absolute;
-  top: -1.05rem;
-  left: -1.15rem;
-  width: 3.9rem;
-  height: 3.9rem;
+  top: -2.1rem;
+  left: -2.3rem;
+  width: 7.8rem;
+  height: 7.8rem;
   object-fit: contain;
   z-index: 0;
   pointer-events: none;
