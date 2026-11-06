@@ -10,6 +10,7 @@ import {
   parseLocalIso,
   weekDayKeys,
 } from "@/lib/dates";
+import { PersonAvatarStack } from "@/components/PersonAvatarStack";
 
 const Shell = styled.div`
   display: flex;
@@ -73,11 +74,12 @@ const EventList = styled.div`
   min-width: 0;
 `;
 
-const EventChip = styled.button<{ $color: string }>`
+const EventChip = styled.button`
   width: 100%;
   display: grid;
-  grid-template-columns: 0.35rem 1fr;
+  grid-template-columns: auto 1fr;
   gap: 0.75rem;
+  align-items: center;
   text-align: left;
   border: 1px solid ${({ theme }) => theme.colors.stroke};
   border-radius: 0.9rem;
@@ -85,14 +87,7 @@ const EventChip = styled.button<{ $color: string }>`
   padding: 0.7rem 0.85rem;
   cursor: pointer;
   min-height: 3.4rem;
-`;
-
-const ColorBar = styled.span<{ $color: string }>`
-  display: block;
-  width: 0.35rem;
-  border-radius: 999px;
-  background: ${({ $color }) => $color};
-  align-self: stretch;
+  color: inherit;
 `;
 
 const EventBody = styled.span`
@@ -151,11 +146,6 @@ function chipLabel(event: EventWithPeople) {
   return formatTime(parseLocalIso(event.startsAt));
 }
 
-function peopleLabel(event: EventWithPeople) {
-  if (event.people.length === 0) return null;
-  return event.people.map((person) => person.name).join(", ");
-}
-
 export function CalendarWeekView({
   anchorDate,
   todayKey,
@@ -183,26 +173,19 @@ export function CalendarWeekView({
               {dayEvents.length === 0 ? (
                 <Empty>No events</Empty>
               ) : (
-                dayEvents.map((event) => {
-                  const who = peopleLabel(event);
-                  return (
-                    <EventChip
-                      key={event.id}
-                      type="button"
-                      $color={event.people[0]?.color ?? "#3F6F5B"}
-                      onClick={() => onOpenEvent(event)}
-                    >
-                      <ColorBar $color={event.people[0]?.color ?? "#3F6F5B"} />
-                      <EventBody>
-                        <EventTitle>{event.title}</EventTitle>
-                        <EventMeta>
-                          {chipLabel(event)}
-                          {who ? ` · ${who}` : ""}
-                        </EventMeta>
-                      </EventBody>
-                    </EventChip>
-                  );
-                })
+                dayEvents.map((event) => (
+                  <EventChip
+                    key={event.id}
+                    type="button"
+                    onClick={() => onOpenEvent(event)}
+                  >
+                    <PersonAvatarStack people={event.people} size={2.15} />
+                    <EventBody>
+                      <EventTitle>{event.title}</EventTitle>
+                      <EventMeta>{chipLabel(event)}</EventMeta>
+                    </EventBody>
+                  </EventChip>
+                ))
               )}
             </EventList>
 
