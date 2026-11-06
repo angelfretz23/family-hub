@@ -8,12 +8,6 @@ import { RulesModal } from "@/components/RulesModal";
 import { TodayClockWeather } from "@/components/TodayClockWeather";
 import { knightGreeting } from "@/lib/dates";
 
-const Block = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.85rem;
-`;
-
 const Greeting = styled.p`
   margin: 0;
   font-family: ${({ theme }) => theme.fonts.display};
@@ -83,6 +77,18 @@ const Subtitle = styled.p`
   font-size: 1.25rem;
 `;
 
+const Right = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+`;
+
+const Left = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+`;
+
 type TodayHeaderProps = {
   title?: string;
   dateLabel: string;
@@ -98,36 +104,38 @@ export function TodayHeader({
 
   return (
     <>
-      <Block>
-        <Greeting>{knightGreeting()}</Greeting>
-
         <Header>
-          <Leading>
-            <CoatButton
-              type="button"
-              onClick={() => setOpen(true)}
-              aria-label="Open family rules"
-              title="Family rules"
-            >
-              <Image
-                src="/coat-of-arms.svg"
-                alt=""
-                width={64}
-                height={64}
-                priority
-              />
-            </CoatButton>
-            <Copy>
-              <Title>{title}</Title>
-              <Subtitle>{dateLabel}</Subtitle>
-            </Copy>
-          </Leading>
-
-          <TodayClockWeather />
+          <Left>
+            <Greeting>{knightGreeting()}</Greeting>
+            <Leading>
+              <CoatButton
+                type="button"
+                onClick={() => setOpen(true)}
+                aria-label="Open family rules"
+                title="Family rules"
+              >
+                <Image
+                  src="/coat-of-arms.svg"
+                  alt=""
+                  width={64}
+                  height={64}
+                  priority
+                />
+              </CoatButton>
+              <Copy>
+                <Title>{title}</Title>
+                <Subtitle>{dateLabel}</Subtitle>
+              </Copy>
+            </Leading>
+          </Left>
+          <Right>
+            <TodayClockWeather />
+          </Right>
         </Header>
-      </Block>
 
-      {open ? <RulesModal rules={rules} onClose={() => setOpen(false)} /> : null}
+      {open ? (
+        <RulesModal rules={rules} onClose={() => setOpen(false)} />
+      ) : null}
     </>
   );
 }
