@@ -9,7 +9,7 @@ export const AVATAR_STACK_SLOT = "5.25rem";
 const Stack = styled.div<{ $size: number; $slot: boolean }>`
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  justify-content: ${({ $slot }) => ($slot ? "flex-end" : "flex-start")};
   flex-shrink: 0;
   height: ${({ $size }) => $size}rem;
   ${({ $slot }) =>
