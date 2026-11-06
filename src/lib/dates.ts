@@ -68,13 +68,22 @@ export function weekDayKeys(date: Date) {
   return Array.from({ length: 7 }, (_, index) => toDateKey(addDays(start, index)));
 }
 
-/** Full month grid including leading/trailing days from adjacent months. */
+/**
+ * Month grid including leading/trailing days from adjacent months,
+ * but only weeks that contain at least one day of the visible month.
+ */
 export function monthGridDayKeys(date: Date) {
   const monthStart = startOfMonth(date);
+  const monthEnd = endOfMonth(date);
   const gridStart = startOfWeek(monthStart);
-  return Array.from({ length: 42 }, (_, index) =>
-    toDateKey(addDays(gridStart, index)),
-  );
+  const gridEnd = endOfWeek(monthEnd);
+  const keys: string[] = [];
+  let cursor = gridStart;
+  while (cursor <= gridEnd) {
+    keys.push(toDateKey(cursor));
+    cursor = addDays(cursor, 1);
+  }
+  return keys;
 }
 
 export function formatWeekRange(date: Date) {
