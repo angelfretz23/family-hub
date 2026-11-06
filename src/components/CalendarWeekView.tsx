@@ -4,114 +4,137 @@ import styled from "styled-components";
 import type { EventWithPeople } from "@/lib/events";
 import {
   eventsOnDayKey,
+  formatDayHeading,
   formatTime,
   parseDateKey,
   parseLocalIso,
-  weekdayShortLabels,
   weekDayKeys,
 } from "@/lib/dates";
 
 const Shell = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.65rem;
-  min-height: 28rem;
+  gap: 0.75rem;
 `;
 
-const Grid = styled.div`
+const DayRow = styled.section<{ $isToday?: boolean }>`
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.45rem;
-  min-height: 26rem;
-`;
-
-const Column = styled.div<{ $isToday?: boolean }>`
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  min-height: 26rem;
+  grid-template-columns: minmax(9.5rem, 12rem) 1fr auto;
+  gap: 0.85rem;
+  align-items: start;
   border-radius: ${({ theme }) => theme.sizes.radius};
   border: 1px solid
     ${({ theme, $isToday }) =>
       $isToday ? theme.colors.accent : theme.colors.stroke};
   background: ${({ theme, $isToday }) =>
     $isToday ? "rgba(201, 133, 45, 0.08)" : theme.colors.panel};
-  padding: 0.55rem;
+  padding: 0.85rem 1rem;
+  box-shadow: ${({ theme }) => theme.shadow.soft};
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const DayHead = styled.button`
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.1rem;
-  width: 100%;
+  gap: 0.2rem;
   border: 0;
   background: transparent;
-  padding: 0.2rem 0.25rem 0.45rem;
+  padding: 0.15rem 0;
   cursor: pointer;
   text-align: left;
   color: inherit;
+  min-height: ${({ theme }) => theme.sizes.touch};
 `;
 
 const Weekday = styled.span`
   color: ${({ theme }) => theme.colors.inkMuted};
   font-size: 0.95rem;
-  font-weight: 650;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
 `;
 
-const DayNumber = styled.span`
+const DayTitle = styled.span`
   font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 1.55rem;
+  font-size: 1.45rem;
   font-weight: 650;
-  line-height: 1;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
 `;
 
 const EventList = styled.div`
   display: flex;
   flex-direction: column;
-  gap: 0.35rem;
-  flex: 1;
-  min-height: 0;
+  gap: 0.45rem;
+  min-width: 0;
 `;
 
 const EventChip = styled.button<{ $color: string }>`
   width: 100%;
+  display: grid;
+  grid-template-columns: 0.35rem 1fr;
+  gap: 0.75rem;
   text-align: left;
-  border: 0;
-  border-left: 0.35rem solid ${({ $color }) => $color};
-  border-radius: 0.7rem;
+  border: 1px solid ${({ theme }) => theme.colors.stroke};
+  border-radius: 0.9rem;
   background: ${({ theme }) => theme.colors.panelStrong};
-  padding: 0.45rem 0.5rem;
+  padding: 0.7rem 0.85rem;
   cursor: pointer;
-  min-height: 3.1rem;
+  min-height: 3.4rem;
+`;
+
+const ColorBar = styled.span<{ $color: string }>`
+  display: block;
+  width: 0.35rem;
+  border-radius: 999px;
+  background: ${({ $color }) => $color};
+  align-self: stretch;
+`;
+
+const EventBody = styled.span`
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
 `;
 
 const EventTitle = styled.span`
-  display: block;
-  font-size: 0.98rem;
+  font-size: 1.15rem;
   font-weight: 700;
   line-height: 1.2;
 `;
 
 const EventMeta = styled.span`
-  display: block;
-  margin-top: 0.15rem;
   color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 0.85rem;
+  font-size: 0.98rem;
+`;
+
+const Empty = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.inkMuted};
+  font-size: 1.05rem;
+  padding: 0.45rem 0;
 `;
 
 const AddDay = styled.button`
-  margin-top: auto;
-  min-height: 2.75rem;
-  border-radius: 0.8rem;
+  min-height: ${({ theme }) => theme.sizes.touch};
+  min-width: 5.5rem;
+  border-radius: 999px;
   border: 1px dashed ${({ theme }) => theme.colors.stroke};
-  background: transparent;
+  background: ${({ theme }) => theme.colors.panelStrong};
   color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 1rem;
-  font-weight: 650;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
+  justify-self: end;
+
+  @media (max-width: 900px) {
+    justify-self: stretch;
+  }
 `;
 
 type CalendarWeekViewProps = {
@@ -128,6 +151,11 @@ function chipLabel(event: EventWithPeople) {
   return formatTime(parseLocalIso(event.startsAt));
 }
 
+function peopleLabel(event: EventWithPeople) {
+  if (event.people.length === 0) return null;
+  return event.people.map((person) => person.name).join(", ");
+}
+
 export function CalendarWeekView({
   anchorDate,
   todayKey,
@@ -136,41 +164,54 @@ export function CalendarWeekView({
   onCreateForDay,
   onSelectDay,
 }: CalendarWeekViewProps) {
-  const labels = weekdayShortLabels();
   const keys = weekDayKeys(anchorDate);
 
   return (
     <Shell>
-      <Grid>
-        {keys.map((dayKey, index) => {
-          const dayEvents = eventsOnDayKey(events, dayKey);
-          const day = parseDateKey(dayKey);
-          return (
-            <Column key={dayKey} $isToday={dayKey === todayKey}>
-              <DayHead type="button" onClick={() => onSelectDay(dayKey)}>
-                <Weekday>{labels[index]}</Weekday>
-                <DayNumber>{day.getDate()}</DayNumber>
-              </DayHead>
-              <EventList>
-                {dayEvents.map((event) => (
-                  <EventChip
-                    key={event.id}
-                    type="button"
-                    $color={event.people[0]?.color ?? "#3F6F5B"}
-                    onClick={() => onOpenEvent(event)}
-                  >
-                    <EventTitle>{event.title}</EventTitle>
-                    <EventMeta>{chipLabel(event)}</EventMeta>
-                  </EventChip>
-                ))}
-              </EventList>
-              <AddDay type="button" onClick={() => onCreateForDay(dayKey)}>
-                + Add
-              </AddDay>
-            </Column>
-          );
-        })}
-      </Grid>
+      {keys.map((dayKey) => {
+        const dayEvents = eventsOnDayKey(events, dayKey);
+        const heading = formatDayHeading(parseDateKey(dayKey));
+
+        return (
+          <DayRow key={dayKey} $isToday={dayKey === todayKey}>
+            <DayHead type="button" onClick={() => onSelectDay(dayKey)}>
+              <Weekday>{heading.split(",")[0]}</Weekday>
+              <DayTitle>{heading.split(", ")[1] ?? heading}</DayTitle>
+            </DayHead>
+
+            <EventList>
+              {dayEvents.length === 0 ? (
+                <Empty>No events</Empty>
+              ) : (
+                dayEvents.map((event) => {
+                  const who = peopleLabel(event);
+                  return (
+                    <EventChip
+                      key={event.id}
+                      type="button"
+                      $color={event.people[0]?.color ?? "#3F6F5B"}
+                      onClick={() => onOpenEvent(event)}
+                    >
+                      <ColorBar $color={event.people[0]?.color ?? "#3F6F5B"} />
+                      <EventBody>
+                        <EventTitle>{event.title}</EventTitle>
+                        <EventMeta>
+                          {chipLabel(event)}
+                          {who ? ` · ${who}` : ""}
+                        </EventMeta>
+                      </EventBody>
+                    </EventChip>
+                  );
+                })
+              )}
+            </EventList>
+
+            <AddDay type="button" onClick={() => onCreateForDay(dayKey)}>
+              + Add
+            </AddDay>
+          </DayRow>
+        );
+      })}
     </Shell>
   );
 }

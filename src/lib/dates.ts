@@ -1,5 +1,7 @@
 /** Local calendar helpers — family hub runs in household local time. */
 
+import { hubConfig, weekStartIndex } from "@/config/hub";
+
 export function pad(n: number) {
   return String(n).padStart(2, "0");
 }
@@ -41,10 +43,12 @@ export function addMonths(date: Date, months: number) {
   return next;
 }
 
-/** Sunday-start week, matching typical US family calendars. */
+/** Week start from `family-hub.config.json` (`sunday` or `monday`). */
 export function startOfWeek(date: Date) {
   const day = startOfDay(date);
-  return addDays(day, -day.getDay());
+  const start = weekStartIndex();
+  const diff = (day.getDay() - start + 7) % 7;
+  return addDays(day, -diff);
 }
 
 export function endOfWeek(date: Date) {
@@ -96,11 +100,10 @@ export function formatMonthHeading(date: Date) {
 }
 
 export function weekdayShortLabels() {
-  // Stable Sun–Sat labels from a known week.
-  const sunday = parseDateKey("2024-01-07");
+  const start = startOfWeek(parseDateKey("2024-01-10"));
   return Array.from({ length: 7 }, (_, index) =>
     new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
-      addDays(sunday, index),
+      addDays(start, index),
     ),
   );
 }
@@ -153,14 +156,12 @@ export function formatCompactRange(startsAt: string, endsAt: string, allDay: boo
   return `${formatTime(start)} – ${formatTime(end)}`;
 }
 
-const HOUSEHOLD_TIME_ZONE = "America/Chicago";
-
 /** Hour in the household timezone (Pi / cloud VMs often run UTC). */
 export function householdHour(date = new Date()) {
   const hourText = new Intl.DateTimeFormat("en-US", {
     hour: "numeric",
     hour12: false,
-    timeZone: HOUSEHOLD_TIME_ZONE,
+    timeZone: hubConfig.timeZone,
   }).format(date);
   return Number(hourText);
 }

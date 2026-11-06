@@ -30,10 +30,26 @@ npm run db:generate   # drizzle migrations from schema
 npm run db:studio     # browse local DB
 ```
 
+## Config
+
+Edit `family-hub.config.json`:
+
+```json
+{
+  "weekStartsOn": "sunday",
+  "timeZone": "America/Chicago"
+}
+```
+
+- `weekStartsOn`: `"sunday"` or `"monday"` — Week and Month calendars
+- `timeZone`: IANA zone for the Knights greeting / household “now”
+
+Restart the dev server after changing this file.
+
 ## Working now
 
 - People seed + `/people` manage screen (linked from Calendar)
-- Calendar **List** and **Day** views with add/edit/delete event sheet
+- Calendar **List**, **Day**, vertical **Week**, and **Month** views
 - Today schedule wired to real events
 - REST APIs: `/api/people`, `/api/events`
 
