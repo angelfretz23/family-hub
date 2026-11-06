@@ -10,7 +10,9 @@ Wall-kiosk family organizer for a Raspberry Pi + touchscreen.
 
 ## Tabs
 
-Today · Calendar · Jobs · Routines · Rules
+Today · Calendar · Jobs · Routines
+
+Family Rules open from the coat-of-arms button beside the Today title (placeholder art in `public/coat-of-arms.svg`).
 
 ## Develop
 

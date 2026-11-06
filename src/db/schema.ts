@@ -37,5 +37,15 @@ export const eventPeople = sqliteTable("event_people", {
     .references(() => people.id, { onDelete: "cascade" }),
 });
 
+export const rules = sqliteTable("rules", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  body: text("body").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  updatedAt: text("updated_at").notNull(),
+});
+
 export type Person = typeof people.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
+export type Rule = typeof rules.$inferSelect;

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import styled from "styled-components";
 
 export const HubShell = styled.div`
@@ -65,28 +64,6 @@ export const WeatherTemp = styled.span`
 export const WeatherMeta = styled.span`
   color: ${({ theme }) => theme.colors.inkMuted};
   font-size: 0.95rem;
-`;
-
-export const RulesTeaser = styled(Link)`
-  display: flex;
-  align-items: center;
-  min-height: ${({ theme }) => theme.sizes.touch};
-  padding: 0 1.25rem;
-  border-radius: ${({ theme }) => theme.sizes.radius};
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme }) => theme.colors.panelStrong};
-  color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 1.15rem;
-  text-align: left;
-  width: 100%;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    color: ${({ theme }) => theme.colors.ink};
-    outline: 2px solid ${({ theme }) => theme.colors.accent};
-    outline-offset: 2px;
-  }
 `;
 
 export const Segmented = styled.div`

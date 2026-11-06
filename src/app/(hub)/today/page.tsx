@@ -1,18 +1,11 @@
-import { HubChrome } from "@/components/HubChrome";
 import { PlaceholderPanel } from "@/components/PlaceholderPanel";
+import { TodayHeader } from "@/components/TodayHeader";
 import { TodaySchedule } from "@/components/TodaySchedule";
-import {
-  Page,
-  RulesTeaser,
-  TodayGrid,
-  TodaySide,
-  WeatherChip,
-  WeatherMeta,
-  WeatherTemp,
-} from "@/components/layout";
+import { Page, TodayGrid, TodaySide } from "@/components/layout";
 import { formatDayHeading, toDateKey } from "@/lib/dates";
 import { ensureDemoEvents, listEventsForToday } from "@/lib/events";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
+import { listRules } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
 
@@ -22,20 +15,12 @@ export default function TodayPage() {
 
   const people = listPeople(true);
   const events = listEventsForToday();
+  const rules = listRules(true);
   const dateKey = toDateKey(new Date());
 
   return (
     <Page>
-      <HubChrome
-        title="Today"
-        subtitle={formatDayHeading(new Date())}
-        trailing={
-          <WeatherChip aria-label="Weather placeholder">
-            <WeatherTemp>—°</WeatherTemp>
-            <WeatherMeta>Weather soon</WeatherMeta>
-          </WeatherChip>
-        }
-      />
+      <TodayHeader dateLabel={formatDayHeading(new Date())} rules={rules} />
 
       <TodayGrid>
         <TodaySchedule people={people} events={events} dateKey={dateKey} />
@@ -50,10 +35,6 @@ export default function TodayPage() {
           />
         </TodaySide>
       </TodayGrid>
-
-      <RulesTeaser href="/rules">
-        Family Rules · Tap for the full board
-      </RulesTeaser>
     </Page>
   );
 }

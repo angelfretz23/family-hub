@@ -53,6 +53,15 @@ sqlite.exec(`
     person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
     PRIMARY KEY (event_id, person_id)
   );
+
+  CREATE TABLE IF NOT EXISTS rules (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    body TEXT NOT NULL DEFAULT '',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    updated_at TEXT NOT NULL
+  );
 `);
 
 export const db = drizzle(sqlite, { schema });
