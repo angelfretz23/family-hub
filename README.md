@@ -6,7 +6,7 @@ Wall-kiosk family organizer for a Raspberry Pi + touchscreen.
 
 - Next.js (React, App Router)
 - Drizzle ORM + SQLite (`better-sqlite3`)
-- Tailwind CSS
+- styled-components
 
 ## Tabs
 

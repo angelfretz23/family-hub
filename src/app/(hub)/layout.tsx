@@ -1,4 +1,5 @@
 import { TabBar } from "@/components/TabBar";
+import { HubMain, HubShell } from "@/components/layout";
 
 export default function HubLayout({
   children,
@@ -6,9 +7,9 @@ export default function HubLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <div className="hub-shell">
-      <main className="hub-main">{children}</main>
+    <HubShell>
+      <HubMain>{children}</HubMain>
       <TabBar />
-    </div>
+    </HubShell>
   );
 }

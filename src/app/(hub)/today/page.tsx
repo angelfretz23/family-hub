@@ -1,6 +1,14 @@
-import Link from "next/link";
 import { HubChrome } from "@/components/HubChrome";
 import { PlaceholderPanel } from "@/components/PlaceholderPanel";
+import {
+  Page,
+  RulesTeaser,
+  TodayGrid,
+  TodaySide,
+  WeatherChip,
+  WeatherMeta,
+  WeatherTemp,
+} from "@/components/layout";
 import { db } from "@/db";
 import { people } from "@/db/schema";
 
@@ -17,24 +25,24 @@ export default function TodayPage() {
   }).format(new Date());
 
   return (
-    <div className="page">
+    <Page>
       <HubChrome
         title="Today"
         subtitle={todayLabel}
         trailing={
-          <div className="weather-chip" aria-label="Weather placeholder">
-            <span className="weather-temp">—°</span>
-            <span className="weather-meta">Weather soon</span>
-          </div>
+          <WeatherChip aria-label="Weather placeholder">
+            <WeatherTemp>—°</WeatherTemp>
+            <WeatherMeta>Weather soon</WeatherMeta>
+          </WeatherChip>
         }
       />
 
-      <div className="today-grid">
+      <TodayGrid>
         <PlaceholderPanel
           heading="Schedule"
           body="Today’s events will list here — all-day first, then timed."
         />
-        <div className="today-side">
+        <TodaySide>
           <PlaceholderPanel
             heading="Routines"
             body="Active routines and progress (e.g. 3/5) will show here."
@@ -43,12 +51,12 @@ export default function TodayPage() {
             heading="Jobs due"
             body="Open jobs due today or overdue will show here."
           />
-        </div>
-      </div>
+        </TodaySide>
+      </TodayGrid>
 
-      <Link href="/rules" className="rules-teaser">
+      <RulesTeaser href="/rules">
         Family Rules · Tap for the full board
-      </Link>
-    </div>
+      </RulesTeaser>
+    </Page>
   );
 }

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Figtree, Fraunces } from "next/font/google";
-import "./globals.css";
+import { StyledComponentsRegistry } from "@/styles/registry";
 
 const fraunces = Fraunces({
   subsets: ["latin"],
@@ -32,7 +32,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${fraunces.variable} ${figtree.variable}`}>{children}</body>
+      <body className={`${fraunces.variable} ${figtree.variable}`}>
+        <StyledComponentsRegistry>{children}</StyledComponentsRegistry>
+      </body>
     </html>
   );
 }

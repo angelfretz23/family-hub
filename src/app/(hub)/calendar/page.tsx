@@ -1,33 +1,32 @@
 import { HubChrome } from "@/components/HubChrome";
 import { PlaceholderPanel } from "@/components/PlaceholderPanel";
+import { Page, Segmented, SegmentedItem } from "@/components/layout";
 
 const VIEWS = ["List", "Day", "Week", "Month"] as const;
 
 export default function CalendarPage() {
   return (
-    <div className="page">
+    <Page>
       <HubChrome title="Calendar" subtitle="List · Day · Week · Month" />
 
-      <div className="segmented" role="tablist" aria-label="Calendar view">
+      <Segmented role="tablist" aria-label="Calendar view">
         {VIEWS.map((view, index) => (
-          <button
+          <SegmentedItem
             key={view}
             type="button"
-            className={
-              index === 0 ? "segmented-item segmented-item-active" : "segmented-item"
-            }
+            $active={index === 0}
             role="tab"
             aria-selected={index === 0}
           >
             {view}
-          </button>
+          </SegmentedItem>
         ))}
-      </div>
+      </Segmented>
 
       <PlaceholderPanel
         heading="List"
         body="Agenda from now, grouped by day. Event create/edit comes next."
       />
-    </div>
+    </Page>
   );
 }
