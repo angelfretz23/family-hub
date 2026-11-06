@@ -31,17 +31,29 @@ const Clock = styled.time`
   font-variant-numeric: tabular-nums;
 `;
 
-const WeatherRow = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.65rem;
+const WeatherStack = styled.div`
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  /* room for the icon peeking past the chip corner */
+  margin-top: 0.85rem;
+  margin-left: 1rem;
 `;
 
 const WeatherIcon = styled.img`
-  width: 3.75rem;
-  height: 3.75rem;
-  flex-shrink: 0;
+  position: absolute;
+  top: -1.05rem;
+  left: -1.15rem;
+  width: 3.9rem;
+  height: 3.9rem;
   object-fit: contain;
+  z-index: 0;
+  pointer-events: none;
+`;
+
+const ChipFront = styled.div`
+  position: relative;
+  z-index: 1;
 `;
 
 function formatClock(date: Date) {
@@ -96,7 +108,7 @@ export function TodayClockWeather() {
       <Clock dateTime={now.toISOString()} aria-live="polite">
         {formatClock(now)}
       </Clock>
-      <WeatherRow>
+      <WeatherStack>
         {weather ? (
           <WeatherIcon
             src={weather.iconUrl}
@@ -104,25 +116,27 @@ export function TodayClockWeather() {
             aria-hidden="true"
           />
         ) : null}
-        <WeatherChip
-          aria-label={
-            weather
-              ? `${tempLine}, ${weather.condition}`
-              : "Weather"
-          }
-        >
-          <WeatherTemp>
-            {tempLine ?? (weatherError ? "—°" : "…°")}
-          </WeatherTemp>
-          <WeatherMeta>
-            {weather
-              ? `${weather.condition} · ${weather.locationLabel}`
-              : weatherError
-                ? "Weather offline"
-                : "Loading weather"}
-          </WeatherMeta>
-        </WeatherChip>
-      </WeatherRow>
+        <ChipFront>
+          <WeatherChip
+            aria-label={
+              weather
+                ? `${tempLine}, ${weather.condition}`
+                : "Weather"
+            }
+          >
+            <WeatherTemp>
+              {tempLine ?? (weatherError ? "—°" : "…°")}
+            </WeatherTemp>
+            <WeatherMeta>
+              {weather
+                ? `${weather.condition} · ${weather.locationLabel}`
+                : weatherError
+                  ? "Weather offline"
+                  : "Loading weather"}
+            </WeatherMeta>
+          </WeatherChip>
+        </ChipFront>
+      </WeatherStack>
     </Trailing>
   );
 }
