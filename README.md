@@ -39,12 +39,16 @@ Edit `family-hub.config.json`:
 ```json
 {
   "weekStartsOn": "sunday",
-  "timeZone": "America/Chicago"
+  "timeZone": "America/Chicago",
+  "latitude": 41.8781,
+  "longitude": -87.6298,
+  "locationLabel": "Chicago"
 }
 ```
 
 - `weekStartsOn`: `"sunday"` or `"monday"` — Week and Month calendars
-- `timeZone`: IANA zone for the Knights greeting / household “now”
+- `timeZone`: IANA zone for the Knights greeting, live clock, and household “now”
+- `latitude` / `longitude` / `locationLabel`: Open-Meteo weather on the Today header
 
 Restart the dev server after changing this file.
 
@@ -58,6 +62,5 @@ Restart the dev server after changing this file.
 ## Notes
 
 - Kiosk-first UI: large touch targets, readable type
-- Weather on Today header is a placeholder for Open-Meteo
-- Week/Month calendar, Jobs, Routines, Rules content still stubs
+- Today header shows a live clock + Open-Meteo weather (`/api/weather`)
 - SQLite file: `data/family-hub.db`

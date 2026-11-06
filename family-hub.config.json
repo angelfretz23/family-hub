@@ -1,4 +1,7 @@
 {
   "weekStartsOn": "sunday",
-  "timeZone": "America/Chicago"
+  "timeZone": "America/Chicago",
+  "latitude": 41.8781,
+  "longitude": -87.6298,
+  "locationLabel": "Chicago"
 }

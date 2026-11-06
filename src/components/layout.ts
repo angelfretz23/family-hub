@@ -53,26 +53,30 @@ export const TodaySide = styled.div`
 
 export const WeatherChip = styled.div`
   min-height: ${({ theme }) => theme.sizes.touch};
-  padding: 0.65rem 1rem;
-  border-radius: 999px;
+  padding: 0.7rem 1.15rem;
+  border-radius: 1.15rem;
   background: ${({ theme }) => theme.colors.panelStrong};
   border: 1px solid ${({ theme }) => theme.colors.stroke};
+  box-shadow: ${({ theme }) => theme.shadow.soft};
   display: flex;
   flex-direction: column;
   justify-content: center;
-  gap: 0.1rem;
-  min-width: 8.5rem;
+  gap: 0.12rem;
+  min-width: 10rem;
+  text-align: right;
 `;
 
 export const WeatherTemp = styled.span`
   font-family: ${({ theme }) => theme.fonts.display};
-  font-size: 1.5rem;
+  font-size: 1.65rem;
   line-height: 1;
+  font-weight: 650;
 `;
 
 export const WeatherMeta = styled.span`
   color: ${({ theme }) => theme.colors.inkMuted};
   font-size: 0.95rem;
+  font-weight: 600;
 `;
 
 export const Segmented = styled.div`

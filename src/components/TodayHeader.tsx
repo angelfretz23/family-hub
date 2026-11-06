@@ -5,11 +5,7 @@ import { useState } from "react";
 import styled from "styled-components";
 import type { Rule } from "@/db/schema";
 import { RulesModal } from "@/components/RulesModal";
-import {
-  WeatherChip,
-  WeatherMeta,
-  WeatherTemp,
-} from "@/components/layout";
+import { TodayClockWeather } from "@/components/TodayClockWeather";
 import { knightGreeting } from "@/lib/dates";
 
 const Block = styled.div`
@@ -87,12 +83,6 @@ const Subtitle = styled.p`
   font-size: 1.25rem;
 `;
 
-const Trailing = styled.div`
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-`;
-
 type TodayHeaderProps = {
   title?: string;
   dateLabel: string;
@@ -133,12 +123,7 @@ export function TodayHeader({
             </Copy>
           </Leading>
 
-          <Trailing>
-            <WeatherChip aria-label="Weather placeholder">
-              <WeatherTemp>—°</WeatherTemp>
-              <WeatherMeta>Weather soon</WeatherMeta>
-            </WeatherChip>
-          </Trailing>
+          <TodayClockWeather />
         </Header>
       </Block>
 
