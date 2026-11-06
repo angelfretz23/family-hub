@@ -343,6 +343,11 @@ export function DayTimeline({
     );
   }
 
+  /** Timeline cells use the column person's color (not the event's first assignee). */
+  function columnColor(column: ColumnPerson) {
+    return column.color || "#3F6F5B";
+  }
+
   function layoutTimed(event: EventWithPeople) {
     const start = Math.max(rangeStart, minutesFromLocalIso(event.startsAt));
     const end = Math.max(start + 15, minutesFromLocalIso(event.endsAt));
@@ -440,10 +445,7 @@ export function DayTimeline({
                   <AllDayChip
                     key={event.id}
                     type="button"
-                    $color={
-                      event.people[0]?.color ??
-                      (column.id === "shared" ? column.color : "#3F6F5B")
-                    }
+                    $color={columnColor(column)}
                     onClick={() => onOpenEvent(event)}
                   >
                     {event.title}
@@ -480,19 +482,13 @@ export function DayTimeline({
 
                 {packOverlaps(
                   eventsForColumn(column).filter((event) => !event.allDay),
-                ).map((item) => {
-                  const color =
-                    item.event.people[0]?.color ??
-                    (typeof column.color === "string"
-                      ? column.color
-                      : "#3F6F5B");
-                  return (
+                ).map((item) => (
                     <EventBlock
                       key={item.event.id}
                       type="button"
                       $top={item.top}
                       $height={item.height}
-                      $color={color}
+                      $color={columnColor(column)}
                       $leftPct={item.leftPct}
                       $widthPct={item.widthPct}
                       onClick={() => onOpenEvent(item.event)}
@@ -504,8 +500,7 @@ export function DayTimeline({
                         {formatTime(parseLocalIso(item.event.endsAt))}
                       </EventMeta>
                     </EventBlock>
-                  );
-                })}
+                ))}
               </Column>
             ))}
 
