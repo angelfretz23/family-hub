@@ -98,14 +98,13 @@ const AllDayStack = styled.div`
 
 const AllDayChip = styled.button<{ $color: string }>`
   border: 0;
-  border-left: 0.28rem solid ${({ $color }) => $color};
   border-radius: 0.55rem;
-  background: ${({ theme }) => theme.colors.panelStrong};
+  background: ${({ $color }) => $color};
   padding: 0.4rem 0.5rem;
   text-align: left;
   font-size: 0.88rem;
   font-weight: 700;
-  color: inherit;
+  color: #fffaf2;
   cursor: pointer;
   min-height: 2.2rem;
 `;
@@ -209,12 +208,11 @@ const EventBlock = styled.button<{
   overflow: hidden;
   border: 0;
   border-radius: 0.7rem;
-  border-left: 0.32rem solid ${({ $color }) => $color};
-  background: ${({ theme }) => theme.colors.panelStrong};
-  box-shadow: 0 8px 22px rgba(28, 42, 36, 0.08);
+  background: ${({ $color }) => $color};
+  box-shadow: 0 8px 22px rgba(28, 42, 36, 0.14);
   padding: 0.35rem 0.45rem;
   text-align: left;
-  color: inherit;
+  color: #fffaf2;
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -232,7 +230,7 @@ const EventTitle = styled.span`
 `;
 
 const EventMeta = styled.span`
-  color: ${({ theme }) => theme.colors.inkMuted};
+  color: rgba(255, 250, 242, 0.82);
   font-size: 0.78rem;
   font-weight: 650;
 `;
