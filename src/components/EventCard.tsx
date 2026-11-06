@@ -2,7 +2,11 @@
 
 import styled from "styled-components";
 import type { EventWithPeople } from "@/lib/events";
-import { formatCompactRange } from "@/lib/dates";
+import {
+  formatCompactRange,
+  formatTime,
+  parseLocalIso,
+} from "@/lib/dates";
 
 const Card = styled.button`
   width: 100%;
@@ -67,9 +71,38 @@ const PersonChip = styled.span<{ $color: string }>`
 type EventCardProps = {
   event: EventWithPeople;
   onOpen: (event: EventWithPeople) => void;
+  /** When set (List view), meta reflects where this day sits in a multi-day span. */
+  dayKey?: string;
 };
 
-export function EventCard({ event, onOpen }: EventCardProps) {
+function metaForDay(event: EventWithPeople, dayKey?: string) {
+  if (!dayKey) {
+    return formatCompactRange(event.startsAt, event.endsAt, event.allDay);
+  }
+
+  const startKey = event.startsAt.slice(0, 10);
+  const endKey = event.endsAt.slice(0, 10);
+  const multiDay = startKey !== endKey;
+
+  if (event.allDay) {
+    if (!multiDay) return "All day";
+    if (dayKey === startKey) return "All day · starts";
+    if (dayKey === endKey) return "All day · ends";
+    return "All day · continues";
+  }
+
+  if (!multiDay) {
+    return formatCompactRange(event.startsAt, event.endsAt, false);
+  }
+
+  const start = parseLocalIso(event.startsAt);
+  const end = parseLocalIso(event.endsAt);
+  if (dayKey === startKey) return `From ${formatTime(start)}`;
+  if (dayKey === endKey) return `Until ${formatTime(end)}`;
+  return "Continues all day";
+}
+
+export function EventCard({ event, onOpen, dayKey }: EventCardProps) {
   const color = event.people[0]?.color ?? "#3F6F5B";
 
   return (
@@ -77,7 +110,7 @@ export function EventCard({ event, onOpen }: EventCardProps) {
       <ColorBar $color={color} />
       <Body>
         <Title>{event.title}</Title>
-        <Meta>{formatCompactRange(event.startsAt, event.endsAt, event.allDay)}</Meta>
+        <Meta>{metaForDay(event, dayKey)}</Meta>
         {event.people.length > 0 ? (
           <PeopleRow>
             {event.people.map((person) => (

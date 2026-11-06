@@ -8,6 +8,7 @@ import type { EventWithPeople } from "@/lib/events";
 import {
   addDays,
   addMonths,
+  eachDayKey,
   formatDayHeading,
   formatMonthHeading,
   formatWeekRange,
@@ -133,17 +134,25 @@ export function CalendarClient({
   const listGroups = useMemo(() => {
     const groups = new Map<string, EventWithPeople[]>();
     for (const event of events) {
-      const key = event.startsAt.slice(0, 10);
-      if (key < todayKey) continue;
-      const list = groups.get(key) ?? [];
-      list.push(event);
-      groups.set(key, list);
+      const startKey = event.startsAt.slice(0, 10);
+      const endKey = event.endsAt.slice(0, 10);
+      // Show the event under every day it spans (from today forward).
+      const rangeStart = startKey < todayKey ? todayKey : startKey;
+      if (endKey < todayKey) continue;
+
+      for (const key of eachDayKey(rangeStart, endKey)) {
+        const list = groups.get(key) ?? [];
+        list.push(event);
+        groups.set(key, list);
+      }
     }
-    return [...groups.entries()].map(([key, dayEvents]) => ({
-      dateKey: key,
-      label: formatDayHeading(parseDateKey(key)),
-      events: dayEvents,
-    }));
+    return [...groups.entries()]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([key, dayEvents]) => ({
+        dateKey: key,
+        label: formatDayHeading(parseDateKey(key)),
+        events: dayEvents,
+      }));
   }, [events, todayKey]);
 
   const dayEvents = useMemo(
@@ -237,8 +246,9 @@ export function CalendarClient({
                 <DayLabel>{group.label}</DayLabel>
                 {group.events.map((event) => (
                   <EventCard
-                    key={event.id}
+                    key={`${group.dateKey}-${event.id}`}
                     event={event}
+                    dayKey={group.dateKey}
                     onOpen={setEditing}
                   />
                 ))}

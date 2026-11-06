@@ -119,6 +119,18 @@ export function eventsOnDayKey<T extends { startsAt: string; endsAt: string }>(
   });
 }
 
+/** Inclusive list of YYYY-MM-DD keys from start through end. */
+export function eachDayKey(startKey: string, endKey: string) {
+  const keys: string[] = [];
+  let cursor = parseDateKey(startKey);
+  const end = parseDateKey(endKey);
+  while (cursor <= end) {
+    keys.push(toDateKey(cursor));
+    cursor = addDays(cursor, 1);
+  }
+  return keys;
+}
+
 export function toLocalIso(date: Date) {
   return `${toDateKey(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }

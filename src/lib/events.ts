@@ -265,26 +265,40 @@ export function ensureDemoEvents() {
   });
 
   seedThreeDayAllDayEvent(family.map((p) => p.id), today);
+  seedTimedMultiDayEvent(family.map((p) => p.id), today);
 }
 
 const THREE_DAY_DEMO_TITLE = "Camping trip (3-day mock)";
+const TIMED_MULTI_DAY_DEMO_TITLE = "Homeschool project weekend (timed mock)";
 
-/** Ensures a multi-day all-day event exists for layout testing across views. */
+/** Ensures layout-demo multi-day events exist (safe on existing DBs). */
 export function ensureThreeDayAllDayDemo() {
-  const existing = db
+  ensureLayoutDemoEvents();
+}
+
+export function ensureLayoutDemoEvents() {
+  const family = db.select().from(people).where(eq(people.active, true)).all();
+  if (family.length === 0) return;
+  const personIds = family.map((p) => p.id);
+  const today = startOfDay(new Date());
+
+  const hasAllDay = db
     .select()
     .from(events)
     .where(eq(events.title, THREE_DAY_DEMO_TITLE))
     .get();
-  if (existing) return;
+  if (!hasAllDay) {
+    seedThreeDayAllDayEvent(personIds, today);
+  }
 
-  const family = db.select().from(people).where(eq(people.active, true)).all();
-  if (family.length === 0) return;
-
-  seedThreeDayAllDayEvent(
-    family.map((p) => p.id),
-    startOfDay(new Date()),
-  );
+  const hasTimed = db
+    .select()
+    .from(events)
+    .where(eq(events.title, TIMED_MULTI_DAY_DEMO_TITLE))
+    .get();
+  if (!hasTimed) {
+    seedTimedMultiDayEvent(personIds, today);
+  }
 }
 
 function seedThreeDayAllDayEvent(personIds: number[], start: Date) {
@@ -295,6 +309,24 @@ function seedThreeDayAllDayEvent(personIds: number[], start: Date) {
     startsAt: toDateKey(start),
     endsAt: toDateKey(end),
     allDay: true,
+    personIds,
+  });
+}
+
+/** Today-1 @ 9:00 → Today+1 @ 17:00 */
+function seedTimedMultiDayEvent(personIds: number[], today: Date) {
+  const start = addDays(today, -1);
+  const end = addDays(today, 1);
+  createEvent({
+    title: TIMED_MULTI_DAY_DEMO_TITLE,
+    notes: "Mock timed multi-day event spanning yesterday through tomorrow.",
+    startsAt: toLocalIso(
+      new Date(start.getFullYear(), start.getMonth(), start.getDate(), 9, 0),
+    ),
+    endsAt: toLocalIso(
+      new Date(end.getFullYear(), end.getMonth(), end.getDate(), 17, 0),
+    ),
+    allDay: false,
     personIds,
   });
 }
