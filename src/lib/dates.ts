@@ -71,3 +71,12 @@ export function formatCompactRange(startsAt: string, endsAt: string, allDay: boo
   const end = parseLocalIso(endsAt);
   return `${formatTime(start)} – ${formatTime(end)}`;
 }
+
+/** Household greeting for the Today header (Modern Day Knight theme). */
+export function knightGreeting(date = new Date()) {
+  const hour = date.getHours();
+  if (hour >= 5 && hour < 12) return "Good Morning Knights";
+  if (hour >= 12 && hour < 17) return "Good Afternoon Knights";
+  if (hour >= 17 && hour < 21) return "Good Evening Knights";
+  return "Good Night Knights";
+}

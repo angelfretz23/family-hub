@@ -10,6 +10,23 @@ import {
   WeatherMeta,
   WeatherTemp,
 } from "@/components/layout";
+import { knightGreeting } from "@/lib/dates";
+
+const Block = styled.div`
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+`;
+
+const Greeting = styled.p`
+  margin: 0;
+  font-family: ${({ theme }) => theme.fonts.display};
+  font-size: clamp(1.65rem, 2.6vw, 2.15rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: ${({ theme }) => theme.colors.ink};
+  line-height: 1.15;
+`;
 
 const Header = styled.header`
   display: flex;
@@ -91,35 +108,39 @@ export function TodayHeader({
 
   return (
     <>
-      <Header>
-        <Leading>
-          <CoatButton
-            type="button"
-            onClick={() => setOpen(true)}
-            aria-label="Open family rules"
-            title="Family rules"
-          >
-            <Image
-              src="/coat-of-arms.svg"
-              alt=""
-              width={64}
-              height={64}
-              priority
-            />
-          </CoatButton>
-          <Copy>
-            <Title>{title}</Title>
-            <Subtitle>{dateLabel}</Subtitle>
-          </Copy>
-        </Leading>
+      <Block>
+        <Greeting>{knightGreeting()}</Greeting>
 
-        <Trailing>
-          <WeatherChip aria-label="Weather placeholder">
-            <WeatherTemp>—°</WeatherTemp>
-            <WeatherMeta>Weather soon</WeatherMeta>
-          </WeatherChip>
-        </Trailing>
-      </Header>
+        <Header>
+          <Leading>
+            <CoatButton
+              type="button"
+              onClick={() => setOpen(true)}
+              aria-label="Open family rules"
+              title="Family rules"
+            >
+              <Image
+                src="/coat-of-arms.svg"
+                alt=""
+                width={64}
+                height={64}
+                priority
+              />
+            </CoatButton>
+            <Copy>
+              <Title>{title}</Title>
+              <Subtitle>{dateLabel}</Subtitle>
+            </Copy>
+          </Leading>
+
+          <Trailing>
+            <WeatherChip aria-label="Weather placeholder">
+              <WeatherTemp>—°</WeatherTemp>
+              <WeatherMeta>Weather soon</WeatherMeta>
+            </WeatherChip>
+          </Trailing>
+        </Header>
+      </Block>
 
       {open ? <RulesModal rules={rules} onClose={() => setOpen(false)} /> : null}
     </>
