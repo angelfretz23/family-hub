@@ -21,10 +21,10 @@ const Block = styled.div`
 const Greeting = styled.p`
   margin: 0;
   font-family: ${({ theme }) => theme.fonts.display};
-  font-size: clamp(1.65rem, 2.6vw, 2.15rem);
-  font-weight: 600;
+  font-size: clamp(1.85rem, 3vw, 2.45rem);
+  font-weight: 650;
   letter-spacing: -0.02em;
-  color: ${({ theme }) => theme.colors.ink};
+  color: ${({ theme }) => theme.colors.accentInk};
   line-height: 1.15;
 `;
 

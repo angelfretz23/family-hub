@@ -72,9 +72,21 @@ export function formatCompactRange(startsAt: string, endsAt: string, allDay: boo
   return `${formatTime(start)} – ${formatTime(end)}`;
 }
 
+const HOUSEHOLD_TIME_ZONE = "America/Chicago";
+
+/** Hour in the household timezone (Pi / cloud VMs often run UTC). */
+export function householdHour(date = new Date()) {
+  const hourText = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    hour12: false,
+    timeZone: HOUSEHOLD_TIME_ZONE,
+  }).format(date);
+  return Number(hourText);
+}
+
 /** Household greeting for the Today header (Modern Day Knight theme). */
 export function knightGreeting(date = new Date()) {
-  const hour = date.getHours();
+  const hour = householdHour(date);
   if (hour >= 5 && hour < 12) return "Good Morning Knights";
   if (hour >= 12 && hour < 17) return "Good Afternoon Knights";
   if (hour >= 17 && hour < 21) return "Good Evening Knights";
