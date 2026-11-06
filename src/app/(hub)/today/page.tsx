@@ -3,7 +3,11 @@ import { TodayHeader } from "@/components/TodayHeader";
 import { TodaySchedule } from "@/components/TodaySchedule";
 import { Page, TodayGrid, TodaySide } from "@/components/layout";
 import { formatDayHeading, toDateKey } from "@/lib/dates";
-import { ensureDemoEvents, listEventsForToday } from "@/lib/events";
+import {
+  ensureDemoEvents,
+  ensureThreeDayAllDayDemo,
+  listEventsForToday,
+} from "@/lib/events";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 import { listRules } from "@/lib/rules";
 
@@ -12,6 +16,7 @@ export const dynamic = "force-dynamic";
 export default function TodayPage() {
   ensurePeopleSeeded();
   ensureDemoEvents();
+  ensureThreeDayAllDayDemo();
 
   const people = listPeople(true);
   const events = listEventsForToday();

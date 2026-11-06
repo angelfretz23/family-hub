@@ -3,6 +3,7 @@ import { parseDateKey, startOfDay, toDateKey } from "@/lib/dates";
 import {
   createEvent,
   ensureDemoEvents,
+  ensureThreeDayAllDayDemo,
   listEventsForDay,
   listEventsFrom,
 } from "@/lib/events";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   ensurePeopleSeeded();
   ensureDemoEvents();
+  ensureThreeDayAllDayDemo();
 
   const { searchParams } = new URL(request.url);
   const day = searchParams.get("day");

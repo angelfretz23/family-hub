@@ -7,7 +7,11 @@ import {
   startOfWeek,
   toDateKey,
 } from "@/lib/dates";
-import { ensureDemoEvents, listEventsBetween } from "@/lib/events";
+import {
+  ensureDemoEvents,
+  ensureThreeDayAllDayDemo,
+  listEventsBetween,
+} from "@/lib/events";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 
 export const dynamic = "force-dynamic";
@@ -21,6 +25,7 @@ export default async function CalendarPage({
 }) {
   ensurePeopleSeeded();
   ensureDemoEvents();
+  ensureThreeDayAllDayDemo();
 
   const params = await searchParams;
   const people = listPeople(true);

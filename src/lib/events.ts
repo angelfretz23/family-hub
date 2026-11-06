@@ -263,4 +263,38 @@ export function ensureDemoEvents() {
     ),
     personIds: kids.slice(1, 2).map((p) => p.id),
   });
+
+  seedThreeDayAllDayEvent(family.map((p) => p.id), today);
+}
+
+const THREE_DAY_DEMO_TITLE = "Camping trip (3-day mock)";
+
+/** Ensures a multi-day all-day event exists for layout testing across views. */
+export function ensureThreeDayAllDayDemo() {
+  const existing = db
+    .select()
+    .from(events)
+    .where(eq(events.title, THREE_DAY_DEMO_TITLE))
+    .get();
+  if (existing) return;
+
+  const family = db.select().from(people).where(eq(people.active, true)).all();
+  if (family.length === 0) return;
+
+  seedThreeDayAllDayEvent(
+    family.map((p) => p.id),
+    startOfDay(new Date()),
+  );
+}
+
+function seedThreeDayAllDayEvent(personIds: number[], start: Date) {
+  const end = addDays(start, 2);
+  createEvent({
+    title: THREE_DAY_DEMO_TITLE,
+    notes: "Mock multi-day all-day event to preview List / Day / Week / Month.",
+    startsAt: toDateKey(start),
+    endsAt: toDateKey(end),
+    allDay: true,
+    personIds,
+  });
 }
