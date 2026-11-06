@@ -18,9 +18,8 @@ import { CalendarMonthView } from "@/components/CalendarMonthView";
 import { CalendarWeekView } from "@/components/CalendarWeekView";
 import { EventCard } from "@/components/EventCard";
 import { EventEditor } from "@/components/EventEditor";
-import { HubChrome } from "@/components/HubChrome";
 import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
-import { Page, Segmented, SegmentedItem } from "@/components/layout";
+import { Page } from "@/components/layout";
 
 const VIEWS = [
   { id: "list", label: "List" },
@@ -31,12 +30,63 @@ const VIEWS = [
 
 type ViewId = (typeof VIEWS)[number]["id"];
 
+const Header = styled.header`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.45rem;
+`;
+
+const TitleRow = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.85rem 1rem;
+`;
+
+const Title = styled.h1`
+  margin: 0;
+  font-family: ${({ theme }) => theme.fonts.display};
+  font-size: clamp(2.4rem, 4vw, 3.4rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+`;
+
+const Subtitle = styled.p`
+  margin: 0;
+  color: ${({ theme }) => theme.colors.inkMuted};
+  font-size: 1.25rem;
+`;
+
+const ViewTabs = styled.div`
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+`;
+
+const ViewTab = styled.button<{ $active?: boolean }>`
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
+  border-radius: 999px;
+  border: 1px solid
+    ${({ theme, $active }) =>
+      $active ? theme.colors.ink : theme.colors.stroke};
+  background: ${({ theme, $active }) =>
+    $active ? theme.colors.ink : theme.colors.panel};
+  color: ${({ theme, $active }) =>
+    $active ? theme.colors.cream : theme.colors.inkMuted};
+  font-size: 0.92rem;
+  font-weight: 650;
+  cursor: pointer;
+`;
+
 const Toolbar = styled.div`
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
-  justify-content: space-between;
 `;
 
 const NavRow = styled.div`
@@ -55,12 +105,6 @@ const NavButton = styled.button`
   font-size: 1.1rem;
   font-weight: 650;
   cursor: pointer;
-`;
-
-const PrimaryButton = styled(NavButton)`
-  background: ${({ theme }) => theme.colors.ink};
-  border-color: ${({ theme }) => theme.colors.ink};
-  color: ${({ theme }) => theme.colors.cream};
 `;
 
 const Stack = styled.div`
@@ -187,7 +231,26 @@ export function CalendarClient({
 
   return (
     <Page>
-      <HubChrome title="Calendar" subtitle={subtitleFor(view, selectedDate)} />
+      <Header>
+        <TitleRow>
+          <Title>Calendar</Title>
+          <ViewTabs role="tablist" aria-label="Calendar view">
+            {VIEWS.map((item) => (
+              <ViewTab
+                key={item.id}
+                type="button"
+                $active={view === item.id}
+                role="tab"
+                aria-selected={view === item.id}
+                onClick={() => setView(item.id)}
+              >
+                {item.label}
+              </ViewTab>
+            ))}
+          </ViewTabs>
+        </TitleRow>
+        <Subtitle>{subtitleFor(view, selectedDate)}</Subtitle>
+      </Header>
 
       <PersonCards
         people={people}
@@ -196,44 +259,24 @@ export function CalendarClient({
         selectable
       />
 
-      <Segmented role="tablist" aria-label="Calendar view">
-        {VIEWS.map((item) => (
-          <SegmentedItem
-            key={item.id}
-            type="button"
-            $active={view === item.id}
-            role="tab"
-            aria-selected={view === item.id}
-            onClick={() => setView(item.id)}
-          >
-            {item.label}
-          </SegmentedItem>
-        ))}
-      </Segmented>
-
-      <Toolbar>
-        <NavRow>
-          {showPeriodNav ? (
-            <>
-              <NavButton type="button" onClick={goPrev}>
-                Prev
-              </NavButton>
-              <NavButton
-                type="button"
-                onClick={() => setDateKey(toDateKey(new Date()))}
-              >
-                Today
-              </NavButton>
-              <NavButton type="button" onClick={goNext}>
-                Next
-              </NavButton>
-            </>
-          ) : null}
-        </NavRow>
-        <PrimaryButton type="button" onClick={() => openCreate()}>
-          Add event
-        </PrimaryButton>
-      </Toolbar>
+      {showPeriodNav ? (
+        <Toolbar>
+          <NavRow>
+            <NavButton type="button" onClick={goPrev}>
+              Prev
+            </NavButton>
+            <NavButton
+              type="button"
+              onClick={() => setDateKey(toDateKey(new Date()))}
+            >
+              Today
+            </NavButton>
+            <NavButton type="button" onClick={goNext}>
+              Next
+            </NavButton>
+          </NavRow>
+        </Toolbar>
+      ) : null}
 
       {view === "list" ? (
         <Stack>
