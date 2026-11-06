@@ -380,17 +380,13 @@ export function DayTimeline({
       return { ...item, lane };
     });
 
-    // Widen each event across how many concurrent lanes it spans visually
-    const laneCount = Math.max(1, laneEnds.length);
+    // Width only from events that actually overlap this one — not the whole day.
     return placed.map((item) => {
-      let concurrent = 1;
-      for (const other of placed) {
-        if (other.event.id === item.event.id) continue;
-        if (other.start < item.end && other.end > item.start) {
-          concurrent = Math.max(concurrent, other.lane + 1, item.lane + 1);
-        }
-      }
-      const columnsUsed = Math.max(laneCount, concurrent);
+      const overlapping = placed.filter(
+        (other) => other.start < item.end && other.end > item.start,
+      );
+      const columnsUsed =
+        Math.max(...overlapping.map((other) => other.lane), item.lane) + 1;
       return {
         ...item,
         leftPct: (item.lane / columnsUsed) * 100,
