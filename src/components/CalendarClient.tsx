@@ -35,6 +35,7 @@ const Header = styled.header`
   flex-direction: column;
   align-items: flex-start;
   gap: 0.45rem;
+  flex-shrink: 0;
 `;
 
 const TitleRow = styled.div`
@@ -87,6 +88,14 @@ const Toolbar = styled.div`
   flex-wrap: wrap;
   gap: 0.75rem;
   align-items: center;
+  flex-shrink: 0;
+`;
+
+const MonthFill = styled.div`
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 `;
 
 const NavRow = styled.div`
@@ -324,13 +333,15 @@ export function CalendarClient({
       ) : null}
 
       {view === "month" ? (
-        <CalendarMonthView
-          anchorDate={selectedDate}
-          todayKey={todayKey}
-          events={visibleEvents}
-          onOpenEvent={setEditing}
-          onSelectDay={selectDay}
-        />
+        <MonthFill>
+          <CalendarMonthView
+            anchorDate={selectedDate}
+            todayKey={todayKey}
+            events={visibleEvents}
+            onOpenEvent={setEditing}
+            onSelectDay={selectDay}
+          />
+        </MonthFill>
       ) : null}
 
       {creating || editing ? (

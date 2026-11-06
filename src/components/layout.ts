@@ -16,6 +16,8 @@ export const HubMain = styled.main`
   overscroll-behavior: contain;
   padding: 1.5rem 1.75rem 1rem;
   -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
 
   @media (max-width: 900px) {
     padding: 1.1rem 1rem 0.75rem;
@@ -26,6 +28,8 @@ export const Page = styled.div`
   width: 100%;
   max-width: none;
   margin: 0;
+  min-height: 100%;
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1.25rem;

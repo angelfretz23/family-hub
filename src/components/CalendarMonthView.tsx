@@ -10,6 +10,9 @@ import {
 } from "@/lib/dates";
 
 const Shell = styled.div`
+  flex: 1;
+  min-height: 0;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
@@ -19,6 +22,7 @@ const WeekdayRow = styled.div`
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
   gap: 0.4rem;
+  flex-shrink: 0;
 `;
 
 const Weekday = styled.div`
@@ -31,9 +35,12 @@ const Weekday = styled.div`
   padding: 0.35rem 0;
 `;
 
-const Grid = styled.div`
+const Grid = styled.div<{ $weeks: number }>`
+  flex: 1;
+  min-height: 0;
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
+  grid-template-rows: repeat(${({ $weeks }) => $weeks}, minmax(0, 1fr));
   gap: 0.4rem;
 `;
 
@@ -41,7 +48,9 @@ const Cell = styled.div<{
   $inMonth: boolean;
   $isToday: boolean;
 }>`
-  min-height: 7.5rem;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -73,6 +82,7 @@ const DayButton = styled.button`
   font-weight: 650;
   line-height: 1;
   min-height: 1.75rem;
+  flex-shrink: 0;
 `;
 
 const EventStack = styled.div`
@@ -80,6 +90,8 @@ const EventStack = styled.div`
   flex-direction: column;
   gap: 0.22rem;
   min-height: 0;
+  flex: 1;
+  overflow: hidden;
 `;
 
 const EventLine = styled.button<{ $color: string }>`
@@ -100,6 +112,7 @@ const EventLine = styled.button<{ $color: string }>`
   cursor: pointer;
   color: inherit;
   min-height: 1.7rem;
+  flex-shrink: 0;
 `;
 
 const More = styled.button`
@@ -111,6 +124,7 @@ const More = styled.button`
   padding: 0.1rem 0.15rem;
   text-align: left;
   cursor: pointer;
+  flex-shrink: 0;
 `;
 
 const MAX_VISIBLE = 3;
@@ -132,6 +146,7 @@ export function CalendarMonthView({
 }: CalendarMonthViewProps) {
   const labels = weekdayShortLabels();
   const keys = monthGridDayKeys(anchorDate);
+  const weeks = Math.max(1, Math.ceil(keys.length / 7));
   const month = anchorDate.getMonth();
 
   return (
@@ -141,7 +156,7 @@ export function CalendarMonthView({
           <Weekday key={label}>{label}</Weekday>
         ))}
       </WeekdayRow>
-      <Grid>
+      <Grid $weeks={weeks}>
         {keys.map((dayKey) => {
           const day = parseDateKey(dayKey);
           const inMonth = day.getMonth() === month;
