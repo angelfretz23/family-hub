@@ -1,5 +1,6 @@
 import { HubChrome } from "@/components/HubChrome";
 import { PlaceholderPanel } from "@/components/PlaceholderPanel";
+import { TodaySchedule } from "@/components/TodaySchedule";
 import {
   Page,
   RulesTeaser,
@@ -9,26 +10,25 @@ import {
   WeatherMeta,
   WeatherTemp,
 } from "@/components/layout";
-import { db } from "@/db";
-import { people } from "@/db/schema";
+import { formatDayHeading, toDateKey } from "@/lib/dates";
+import { ensureDemoEvents, listEventsForToday } from "@/lib/events";
+import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 
 export const dynamic = "force-dynamic";
 
 export default function TodayPage() {
-  // Touch SQLite so the local DB file and tables exist on first load.
-  db.select().from(people).all();
+  ensurePeopleSeeded();
+  ensureDemoEvents();
 
-  const todayLabel = new Intl.DateTimeFormat("en-US", {
-    weekday: "long",
-    month: "short",
-    day: "numeric",
-  }).format(new Date());
+  const people = listPeople(true);
+  const events = listEventsForToday();
+  const dateKey = toDateKey(new Date());
 
   return (
     <Page>
       <HubChrome
         title="Today"
-        subtitle={todayLabel}
+        subtitle={formatDayHeading(new Date())}
         trailing={
           <WeatherChip aria-label="Weather placeholder">
             <WeatherTemp>—°</WeatherTemp>
@@ -38,10 +38,7 @@ export default function TodayPage() {
       />
 
       <TodayGrid>
-        <PlaceholderPanel
-          heading="Schedule"
-          body="Today’s events will list here — all-day first, then timed."
-        />
+        <TodaySchedule people={people} events={events} dateKey={dateKey} />
         <TodaySide>
           <PlaceholderPanel
             heading="Routines"

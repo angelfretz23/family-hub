@@ -35,6 +35,24 @@ sqlite.exec(`
     key TEXT PRIMARY KEY,
     value TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS events (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    notes TEXT NOT NULL DEFAULT '',
+    starts_at TEXT NOT NULL,
+    ends_at TEXT NOT NULL,
+    all_day INTEGER NOT NULL DEFAULT 0,
+    location TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS event_people (
+    event_id INTEGER NOT NULL REFERENCES events(id) ON DELETE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    PRIMARY KEY (event_id, person_id)
+  );
 `);
 
 export const db = drizzle(sqlite, { schema });

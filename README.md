@@ -28,8 +28,16 @@ npm run db:generate   # drizzle migrations from schema
 npm run db:studio     # browse local DB
 ```
 
+## Working now
+
+- People seed + `/people` manage screen (linked from Calendar)
+- Calendar **List** and **Day** views with add/edit/delete event sheet
+- Today schedule wired to real events
+- REST APIs: `/api/people`, `/api/events`
+
 ## Notes
 
 - Kiosk-first UI: large touch targets, readable type
 - Weather on Today header is a placeholder for Open-Meteo
-- Feature screens beyond navigation are stubs for the next build slices
+- Week/Month calendar, Jobs, Routines, Rules content still stubs
+- SQLite file: `data/family-hub.db`

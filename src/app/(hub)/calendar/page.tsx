@@ -1,32 +1,37 @@
-import { HubChrome } from "@/components/HubChrome";
-import { PlaceholderPanel } from "@/components/PlaceholderPanel";
-import { Page, Segmented, SegmentedItem } from "@/components/layout";
+import { CalendarClient } from "@/components/CalendarClient";
+import { startOfDay, toDateKey } from "@/lib/dates";
+import { ensureDemoEvents, listEventsFrom } from "@/lib/events";
+import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 
-const VIEWS = ["List", "Day", "Week", "Month"] as const;
+export const dynamic = "force-dynamic";
 
-export default function CalendarPage() {
+type SearchParams = Promise<{ view?: string; date?: string }>;
+
+export default async function CalendarPage({
+  searchParams,
+}: {
+  searchParams: SearchParams;
+}) {
+  ensurePeopleSeeded();
+  ensureDemoEvents();
+
+  const params = await searchParams;
+  const people = listPeople(true);
+  const events = listEventsFrom(startOfDay(new Date()), 80);
+  const view =
+    params.view === "day" ||
+    params.view === "week" ||
+    params.view === "month" ||
+    params.view === "list"
+      ? params.view
+      : "list";
+
   return (
-    <Page>
-      <HubChrome title="Calendar" subtitle="List · Day · Week · Month" />
-
-      <Segmented role="tablist" aria-label="Calendar view">
-        {VIEWS.map((view, index) => (
-          <SegmentedItem
-            key={view}
-            type="button"
-            $active={index === 0}
-            role="tab"
-            aria-selected={index === 0}
-          >
-            {view}
-          </SegmentedItem>
-        ))}
-      </Segmented>
-
-      <PlaceholderPanel
-        heading="List"
-        body="Agenda from now, grouped by day. Event create/edit comes next."
-      />
-    </Page>
+    <CalendarClient
+      people={people}
+      events={events}
+      initialView={view}
+      initialDateKey={params.date ?? toDateKey(new Date())}
+    />
   );
 }

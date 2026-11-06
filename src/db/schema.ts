@@ -15,3 +15,27 @@ export const settings = sqliteTable("settings", {
   key: text("key").primaryKey(),
   value: text("value").notNull(),
 });
+
+export const events = sqliteTable("events", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  notes: text("notes").notNull().default(""),
+  startsAt: text("starts_at").notNull(),
+  endsAt: text("ends_at").notNull(),
+  allDay: integer("all_day", { mode: "boolean" }).notNull().default(false),
+  location: text("location").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+  updatedAt: text("updated_at").notNull(),
+});
+
+export const eventPeople = sqliteTable("event_people", {
+  eventId: integer("event_id")
+    .notNull()
+    .references(() => events.id, { onDelete: "cascade" }),
+  personId: integer("person_id")
+    .notNull()
+    .references(() => people.id, { onDelete: "cascade" }),
+});
+
+export type Person = typeof people.$inferSelect;
+export type EventRow = typeof events.$inferSelect;
