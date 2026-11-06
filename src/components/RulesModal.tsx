@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import styled from "styled-components";
 import type { Rule } from "@/db/schema";
 
@@ -121,7 +123,15 @@ type RulesModalProps = {
 };
 
 export function RulesModal({ rules, onClose }: RulesModalProps) {
-  return (
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
+
+  return createPortal(
     <Overlay
       role="dialog"
       aria-modal="true"
@@ -167,6 +177,7 @@ export function RulesModal({ rules, onClose }: RulesModalProps) {
           </List>
         )}
       </Dialog>
-    </Overlay>
+    </Overlay>,
+    document.body,
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
@@ -202,6 +203,11 @@ export function EventEditor({
   const [personIds, setPersonIds] = useState<number[]>(defaults.personIds);
   const [error, setError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   function togglePerson(id: number) {
     setPersonIds((current) =>
@@ -270,7 +276,9 @@ export function EventEditor({
     }
   }
 
-  return (
+if (!mounted) return null;
+
+  return createPortal(
     <Overlay role="dialog" aria-modal="true" aria-label="Event editor">
       <Sheet onSubmit={onSubmit}>
         <Title>{initial ? "Edit event" : "New event"}</Title>
@@ -396,6 +404,7 @@ export function EventEditor({
           </Button>
         ) : null}
       </Sheet>
-    </Overlay>
+    </Overlay>,
+    document.body,
   );
 }
