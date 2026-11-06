@@ -1,3 +1,4 @@
+import { PersonCards } from "@/components/PersonCards";
 import { PlaceholderPanel } from "@/components/PlaceholderPanel";
 import { TodayHeader } from "@/components/TodayHeader";
 import { TodaySchedule } from "@/components/TodaySchedule";
@@ -8,7 +9,9 @@ import {
   ensureThreeDayAllDayDemo,
   listEventsForToday,
 } from "@/lib/events";
+import { ensureJobsSeeded, jobStatsByPerson } from "@/lib/jobs";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
+import { ensureRoutinesSeeded } from "@/lib/routines";
 import { listRules } from "@/lib/rules";
 
 export const dynamic = "force-dynamic";
@@ -17,26 +20,31 @@ export default function TodayPage() {
   ensurePeopleSeeded();
   ensureDemoEvents();
   ensureThreeDayAllDayDemo();
+  ensureJobsSeeded();
+  ensureRoutinesSeeded();
 
   const people = listPeople(true);
   const events = listEventsForToday();
   const rules = listRules(true);
   const dateKey = toDateKey(new Date());
+  const jobStats = jobStatsByPerson(dateKey);
 
   return (
     <Page>
       <TodayHeader dateLabel={formatDayHeading(new Date())} rules={rules} />
+
+      <PersonCards people={people} showJobStats jobStats={jobStats} />
 
       <TodayGrid>
         <TodaySchedule people={people} events={events} dateKey={dateKey} />
         <TodaySide>
           <PlaceholderPanel
             heading="Routines"
-            body="Active routines and progress (e.g. 3/5) will show here."
+            body="Open the Routines tab for morning, afternoon, evening, and jobs."
           />
           <PlaceholderPanel
             heading="Jobs due"
-            body="Open jobs due today or overdue will show here."
+            body="Job counts are on each family card above. Full list is under Routines."
           />
         </TodaySide>
       </TodayGrid>

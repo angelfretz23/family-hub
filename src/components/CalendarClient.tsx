@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useMemo, useState } from "react";
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
@@ -20,6 +19,7 @@ import { CalendarWeekView } from "@/components/CalendarWeekView";
 import { EventCard } from "@/components/EventCard";
 import { EventEditor } from "@/components/EventEditor";
 import { HubChrome } from "@/components/HubChrome";
+import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
 import { Page, Segmented, SegmentedItem } from "@/components/layout";
 
 const VIEWS = [
@@ -61,18 +61,6 @@ const PrimaryButton = styled(NavButton)`
   background: ${({ theme }) => theme.colors.ink};
   border-color: ${({ theme }) => theme.colors.ink};
   color: ${({ theme }) => theme.colors.cream};
-`;
-
-const QuietLink = styled(Link)`
-  min-height: ${({ theme }) => theme.sizes.touch};
-  display: inline-flex;
-  align-items: center;
-  padding: 0 1rem;
-  border-radius: 999px;
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme }) => theme.colors.panel};
-  font-size: 1.05rem;
-  font-weight: 600;
 `;
 
 const Stack = styled.div`
@@ -127,16 +115,24 @@ export function CalendarClient({
   const [editing, setEditing] = useState<EventWithPeople | null>(null);
   const [creating, setCreating] = useState(false);
   const [createDateKey, setCreateDateKey] = useState<string | null>(null);
+  const [selectedIds, setSelectedIds] = useState<number[]>([]);
 
   const selectedDate = useMemo(() => parseDateKey(dateKey), [dateKey]);
   const todayKey = toDateKey(new Date());
 
+  const visibleEvents = useMemo(
+    () =>
+      filterBySelectedPeople(events, selectedIds, (event) =>
+        event.people.map((person) => person.id),
+      ),
+    [events, selectedIds],
+  );
+
   const listGroups = useMemo(() => {
     const groups = new Map<string, EventWithPeople[]>();
-    for (const event of events) {
+    for (const event of visibleEvents) {
       const startKey = event.startsAt.slice(0, 10);
       const endKey = event.endsAt.slice(0, 10);
-      // Show the event under every day it spans (from today forward).
       const rangeStart = startKey < todayKey ? todayKey : startKey;
       if (endKey < todayKey) continue;
 
@@ -153,16 +149,16 @@ export function CalendarClient({
         label: formatDayHeading(parseDateKey(key)),
         events: dayEvents,
       }));
-  }, [events, todayKey]);
+  }, [visibleEvents, todayKey]);
 
   const dayEvents = useMemo(
     () =>
-      events.filter((event) => {
+      visibleEvents.filter((event) => {
         const startKey = event.startsAt.slice(0, 10);
         const endKey = event.endsAt.slice(0, 10);
         return startKey <= dateKey && endKey >= dateKey;
       }),
-    [events, dateKey],
+    [visibleEvents, dateKey],
   );
 
   function goPrev() {
@@ -191,10 +187,13 @@ export function CalendarClient({
 
   return (
     <Page>
-      <HubChrome
-        title="Calendar"
-        subtitle={subtitleFor(view, selectedDate)}
-        trailing={<QuietLink href="/people">People</QuietLink>}
+      <HubChrome title="Calendar" subtitle={subtitleFor(view, selectedDate)} />
+
+      <PersonCards
+        people={people}
+        selectedIds={selectedIds}
+        onChange={setSelectedIds}
+        selectable
       />
 
       <Segmented role="tablist" aria-label="Calendar view">
@@ -239,7 +238,7 @@ export function CalendarClient({
       {view === "list" ? (
         <Stack>
           {listGroups.length === 0 ? (
-            <Empty>No upcoming events. Tap Add event to create one.</Empty>
+            <Empty>No upcoming events for this filter.</Empty>
           ) : (
             listGroups.map((group) => (
               <DayGroup key={group.dateKey}>
@@ -261,7 +260,7 @@ export function CalendarClient({
       {view === "day" ? (
         <Stack>
           {dayEvents.length === 0 ? (
-            <Empty>Nothing on this day yet.</Empty>
+            <Empty>Nothing on this day for this filter.</Empty>
           ) : (
             dayEvents.map((event) => (
               <EventCard key={event.id} event={event} onOpen={setEditing} />
@@ -274,7 +273,7 @@ export function CalendarClient({
         <CalendarWeekView
           anchorDate={selectedDate}
           todayKey={todayKey}
-          events={events}
+          events={visibleEvents}
           onOpenEvent={setEditing}
           onCreateForDay={(key) => openCreate(key)}
           onSelectDay={selectDay}
@@ -285,7 +284,7 @@ export function CalendarClient({
         <CalendarMonthView
           anchorDate={selectedDate}
           todayKey={todayKey}
-          events={events}
+          events={visibleEvents}
           onOpenEvent={setEditing}
           onSelectDay={selectDay}
         />

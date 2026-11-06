@@ -28,7 +28,8 @@ sqlite.exec(`
     color TEXT NOT NULL DEFAULT '#3F6F5B',
     role TEXT NOT NULL DEFAULT 'child',
     sort_order INTEGER NOT NULL DEFAULT 0,
-    active INTEGER NOT NULL DEFAULT 1
+    active INTEGER NOT NULL DEFAULT 1,
+    avatar_url TEXT
   );
 
   CREATE TABLE IF NOT EXISTS settings (
@@ -62,7 +63,56 @@ sqlite.exec(`
     active INTEGER NOT NULL DEFAULT 1,
     updated_at TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    notes TEXT NOT NULL DEFAULT '',
+    assignee_id INTEGER REFERENCES people(id) ON DELETE SET NULL,
+    due_at TEXT,
+    status TEXT NOT NULL DEFAULT 'open',
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    created_at TEXT NOT NULL,
+    completed_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS routines (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    band TEXT NOT NULL DEFAULT 'morning',
+    active INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS routine_steps (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+    title TEXT NOT NULL,
+    sort_order INTEGER NOT NULL DEFAULT 0
+  );
+
+  CREATE TABLE IF NOT EXISTS routine_runs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    routine_id INTEGER NOT NULL REFERENCES routines(id) ON DELETE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    run_date TEXT NOT NULL,
+    completed_at TEXT
+  );
+
+  CREATE TABLE IF NOT EXISTS routine_step_checks (
+    run_id INTEGER NOT NULL REFERENCES routine_runs(id) ON DELETE CASCADE,
+    step_id INTEGER NOT NULL REFERENCES routine_steps(id) ON DELETE CASCADE,
+    checked_at TEXT NOT NULL,
+    PRIMARY KEY (run_id, step_id)
+  );
 `);
+
+try {
+  sqlite.exec(`ALTER TABLE people ADD COLUMN avatar_url TEXT`);
+} catch {
+  // column already exists
+}
 
 export const db = drizzle(sqlite, { schema });
 export type Db = typeof db;

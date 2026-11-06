@@ -10,9 +10,11 @@ Wall-kiosk family organizer for a Raspberry Pi + touchscreen.
 
 ## Tabs
 
-Today · Calendar · Jobs · Routines
+Today · Calendar · Routines
 
 Family Rules open from the coat-of-arms button beside the Today title (placeholder art in `public/coat-of-arms.svg`).
+
+Member cards appear on Today (with job counts), Calendar (event filter), and Routines (routine/job filter). Jobs live under the Routines tab as an all-day section.
 
 ## Develop
 

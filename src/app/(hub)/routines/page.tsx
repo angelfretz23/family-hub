@@ -1,15 +1,30 @@
-import { HubChrome } from "@/components/HubChrome";
-import { PlaceholderPanel } from "@/components/PlaceholderPanel";
-import { Page } from "@/components/layout";
+import { RoutinesBoard } from "@/components/RoutinesBoard";
+import { toDateKey } from "@/lib/dates";
+import { ensureJobsSeeded, jobStatsByPerson, listJobsForDay } from "@/lib/jobs";
+import { ensurePeopleSeeded, listPeople } from "@/lib/people";
+import { ensureRoutinesSeeded, listRoutinesForToday } from "@/lib/routines";
+
+export const dynamic = "force-dynamic";
 
 export default function RoutinesPage() {
+  ensurePeopleSeeded();
+  ensureJobsSeeded();
+  ensureRoutinesSeeded();
+
+  const dateKey = toDateKey(new Date());
+  const people = listPeople(true);
+  const routines = listRoutinesForToday(dateKey).filter((routine) =>
+    Boolean(routine.person),
+  );
+  const jobs = listJobsForDay(dateKey);
+  const jobStats = jobStatsByPerson(dateKey);
+
   return (
-    <Page>
-      <HubChrome title="Routines" subtitle="Recurring step sequences" />
-      <PlaceholderPanel
-        heading="Today’s runs"
-        body="Routine runner and editor will live here."
-      />
-    </Page>
+    <RoutinesBoard
+      people={people}
+      routines={routines}
+      jobs={jobs}
+      jobStats={jobStats}
+    />
   );
 }
