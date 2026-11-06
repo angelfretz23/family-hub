@@ -7,10 +7,15 @@ import type { Person } from "@/db/schema";
 import type { EventWithPeople } from "@/lib/events";
 import {
   addDays,
+  addMonths,
   formatDayHeading,
+  formatMonthHeading,
+  formatWeekRange,
   parseDateKey,
   toDateKey,
 } from "@/lib/dates";
+import { CalendarMonthView } from "@/components/CalendarMonthView";
+import { CalendarWeekView } from "@/components/CalendarWeekView";
 import { EventCard } from "@/components/EventCard";
 import { EventEditor } from "@/components/EventEditor";
 import { HubChrome } from "@/components/HubChrome";
@@ -94,21 +99,19 @@ const Empty = styled.p`
   font-size: 1.2rem;
 `;
 
-const ComingSoon = styled.div`
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme }) => theme.colors.panel};
-  border-radius: ${({ theme }) => theme.sizes.radius};
-  padding: 1.5rem;
-  color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 1.2rem;
-`;
-
 type CalendarClientProps = {
   people: Person[];
   events: EventWithPeople[];
   initialView?: ViewId;
   initialDateKey?: string;
 };
+
+function subtitleFor(view: ViewId, selectedDate: Date) {
+  if (view === "day") return formatDayHeading(selectedDate);
+  if (view === "week") return formatWeekRange(selectedDate);
+  if (view === "month") return formatMonthHeading(selectedDate);
+  return "Family schedule";
+}
 
 export function CalendarClient({
   people,
@@ -122,13 +125,16 @@ export function CalendarClient({
   );
   const [editing, setEditing] = useState<EventWithPeople | null>(null);
   const [creating, setCreating] = useState(false);
+  const [createDateKey, setCreateDateKey] = useState<string | null>(null);
 
   const selectedDate = useMemo(() => parseDateKey(dateKey), [dateKey]);
+  const todayKey = toDateKey(new Date());
 
   const listGroups = useMemo(() => {
     const groups = new Map<string, EventWithPeople[]>();
     for (const event of events) {
       const key = event.startsAt.slice(0, 10);
+      if (key < todayKey) continue;
       const list = groups.get(key) ?? [];
       list.push(event);
       groups.set(key, list);
@@ -138,7 +144,7 @@ export function CalendarClient({
       label: formatDayHeading(parseDateKey(key)),
       events: dayEvents,
     }));
-  }, [events]);
+  }, [events, todayKey]);
 
   const dayEvents = useMemo(
     () =>
@@ -150,13 +156,35 @@ export function CalendarClient({
     [events, dateKey],
   );
 
+  function goPrev() {
+    if (view === "day") setDateKey(toDateKey(addDays(selectedDate, -1)));
+    if (view === "week") setDateKey(toDateKey(addDays(selectedDate, -7)));
+    if (view === "month") setDateKey(toDateKey(addMonths(selectedDate, -1)));
+  }
+
+  function goNext() {
+    if (view === "day") setDateKey(toDateKey(addDays(selectedDate, 1)));
+    if (view === "week") setDateKey(toDateKey(addDays(selectedDate, 7)));
+    if (view === "month") setDateKey(toDateKey(addMonths(selectedDate, 1)));
+  }
+
+  function openCreate(forDay?: string) {
+    setCreateDateKey(forDay ?? dateKey);
+    setCreating(true);
+  }
+
+  function selectDay(nextKey: string) {
+    setDateKey(nextKey);
+    setView("day");
+  }
+
+  const showPeriodNav = view === "day" || view === "week" || view === "month";
+
   return (
     <Page>
       <HubChrome
         title="Calendar"
-        subtitle={
-          view === "day" ? formatDayHeading(selectedDate) : "Family schedule"
-        }
+        subtitle={subtitleFor(view, selectedDate)}
         trailing={<QuietLink href="/people">People</QuietLink>}
       />
 
@@ -177,12 +205,9 @@ export function CalendarClient({
 
       <Toolbar>
         <NavRow>
-          {view === "day" ? (
+          {showPeriodNav ? (
             <>
-              <NavButton
-                type="button"
-                onClick={() => setDateKey(toDateKey(addDays(selectedDate, -1)))}
-              >
+              <NavButton type="button" onClick={goPrev}>
                 Prev
               </NavButton>
               <NavButton
@@ -191,16 +216,13 @@ export function CalendarClient({
               >
                 Today
               </NavButton>
-              <NavButton
-                type="button"
-                onClick={() => setDateKey(toDateKey(addDays(selectedDate, 1)))}
-              >
+              <NavButton type="button" onClick={goNext}>
                 Next
               </NavButton>
             </>
           ) : null}
         </NavRow>
-        <PrimaryButton type="button" onClick={() => setCreating(true)}>
+        <PrimaryButton type="button" onClick={() => openCreate()}>
           Add event
         </PrimaryButton>
       </Toolbar>
@@ -238,21 +260,36 @@ export function CalendarClient({
         </Stack>
       ) : null}
 
-      {view === "week" || view === "month" ? (
-        <ComingSoon>
-          {view === "week" ? "Week" : "Month"} view is next — List and Day are
-          ready now.
-        </ComingSoon>
+      {view === "week" ? (
+        <CalendarWeekView
+          anchorDate={selectedDate}
+          todayKey={todayKey}
+          events={events}
+          onOpenEvent={setEditing}
+          onCreateForDay={(key) => openCreate(key)}
+          onSelectDay={selectDay}
+        />
+      ) : null}
+
+      {view === "month" ? (
+        <CalendarMonthView
+          anchorDate={selectedDate}
+          todayKey={todayKey}
+          events={events}
+          onOpenEvent={setEditing}
+          onSelectDay={selectDay}
+        />
       ) : null}
 
       {creating || editing ? (
         <EventEditor
           people={people}
           initial={editing}
-          defaultDateKey={dateKey}
+          defaultDateKey={createDateKey ?? dateKey}
           onClose={() => {
             setCreating(false);
             setEditing(null);
+            setCreateDateKey(null);
           }}
         />
       ) : null}

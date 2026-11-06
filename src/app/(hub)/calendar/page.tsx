@@ -1,6 +1,13 @@
 import { CalendarClient } from "@/components/CalendarClient";
-import { startOfDay, toDateKey } from "@/lib/dates";
-import { ensureDemoEvents, listEventsFrom } from "@/lib/events";
+import {
+  addMonths,
+  endOfMonth,
+  parseDateKey,
+  startOfMonth,
+  startOfWeek,
+  toDateKey,
+} from "@/lib/dates";
+import { ensureDemoEvents, listEventsBetween } from "@/lib/events";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +24,13 @@ export default async function CalendarPage({
 
   const params = await searchParams;
   const people = listPeople(true);
-  const events = listEventsFrom(startOfDay(new Date()), 80);
+  const anchor = params.date ? parseDateKey(params.date) : new Date();
+
+  // Cover current week/month navigation plus neighbors for Prev/Next without gaps.
+  const rangeStart = startOfWeek(startOfMonth(addMonths(anchor, -1)));
+  const rangeEnd = endOfMonth(addMonths(anchor, 2));
+  const events = listEventsBetween(rangeStart, rangeEnd);
+
   const view =
     params.view === "day" ||
     params.view === "week" ||

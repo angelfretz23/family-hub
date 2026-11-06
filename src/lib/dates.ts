@@ -35,6 +35,87 @@ export function addDays(date: Date, days: number) {
   return next;
 }
 
+export function addMonths(date: Date, months: number) {
+  const next = new Date(date);
+  next.setMonth(next.getMonth() + months);
+  return next;
+}
+
+/** Sunday-start week, matching typical US family calendars. */
+export function startOfWeek(date: Date) {
+  const day = startOfDay(date);
+  return addDays(day, -day.getDay());
+}
+
+export function endOfWeek(date: Date) {
+  return endOfDay(addDays(startOfWeek(date), 6));
+}
+
+export function startOfMonth(date: Date) {
+  return new Date(date.getFullYear(), date.getMonth(), 1, 0, 0, 0, 0);
+}
+
+export function endOfMonth(date: Date) {
+  return endOfDay(new Date(date.getFullYear(), date.getMonth() + 1, 0));
+}
+
+export function weekDayKeys(date: Date) {
+  const start = startOfWeek(date);
+  return Array.from({ length: 7 }, (_, index) => toDateKey(addDays(start, index)));
+}
+
+/** Full month grid including leading/trailing days from adjacent months. */
+export function monthGridDayKeys(date: Date) {
+  const monthStart = startOfMonth(date);
+  const gridStart = startOfWeek(monthStart);
+  return Array.from({ length: 42 }, (_, index) =>
+    toDateKey(addDays(gridStart, index)),
+  );
+}
+
+export function formatWeekRange(date: Date) {
+  const start = startOfWeek(date);
+  const end = addDays(start, 6);
+  const startLabel = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(start);
+  const endLabel = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(end);
+  return `${startLabel} – ${endLabel}`;
+}
+
+export function formatMonthHeading(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+}
+
+export function weekdayShortLabels() {
+  // Stable Sun–Sat labels from a known week.
+  const sunday = parseDateKey("2024-01-07");
+  return Array.from({ length: 7 }, (_, index) =>
+    new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(
+      addDays(sunday, index),
+    ),
+  );
+}
+
+export function eventsOnDayKey<T extends { startsAt: string; endsAt: string }>(
+  items: T[],
+  dayKey: string,
+) {
+  return items.filter((event) => {
+    const startKey = event.startsAt.slice(0, 10);
+    const endKey = event.endsAt.slice(0, 10);
+    return startKey <= dayKey && endKey >= dayKey;
+  });
+}
+
 export function toLocalIso(date: Date) {
   return `${toDateKey(date)}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
 }
