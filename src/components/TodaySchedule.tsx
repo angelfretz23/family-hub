@@ -19,6 +19,7 @@ const Panel = styled.section`
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+  width: 100%;
 `;
 
 const Header = styled.div`

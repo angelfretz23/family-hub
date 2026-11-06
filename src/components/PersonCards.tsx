@@ -10,12 +10,12 @@ const Row = styled.div<{ $portrait: boolean; $count: number }>`
   width: 100%;
   gap: 0.85rem;
 
-  @media (max-width: 900px) {
-    grid-template-columns: repeat(
-      ${({ $portrait }) => ($portrait ? 2 : 2)},
-      minmax(0, 1fr)
-    );
-  }
+  // @media (max-width: 900px) {
+  //   grid-template-columns: repeat(
+  //     ${({ $portrait }) => ($portrait ? 2 : 2)},
+  //     minmax(0, 1fr)
+  //   );
+  // }
 `;
 
 const cardChrome = `

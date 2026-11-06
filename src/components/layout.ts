@@ -33,7 +33,7 @@ export const Page = styled.div`
 
 export const TodayGrid = styled.div`
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
+  // grid-template-columns: 1.4fr 1fr;
   gap: 1rem;
 
   @media (max-width: 900px) {
