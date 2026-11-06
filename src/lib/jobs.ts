@@ -27,19 +27,12 @@ export function ensureJobsSeeded() {
     status: "open" | "done";
   }> = [];
 
-  for (const person of family) {
-    if (person.role === "child") {
-      seeds.push(
-        { title: "Make bed", assigneeId: person.id, status: "done" },
-        { title: "Feed the dog", assigneeId: person.id, status: "open" },
-        { title: "Clear dishes", assigneeId: person.id, status: "open" },
-      );
-    } else {
-      seeds.push(
-        { title: "Trash & recycling", assigneeId: person.id, status: "open" },
-        { title: "Meal prep", assigneeId: person.id, status: "done" },
-      );
-    }
+  for (const person of family.filter((member) => member.role === "child")) {
+    seeds.push(
+      { title: "Make bed", assigneeId: person.id, status: "done" },
+      { title: "Feed the dog", assigneeId: person.id, status: "open" },
+      { title: "Clear dishes", assigneeId: person.id, status: "open" },
+    );
   }
 
   seeds.forEach((seed, index) => {

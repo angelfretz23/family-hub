@@ -5,8 +5,11 @@ import styled from "styled-components";
 import type { Person } from "@/db/schema";
 import type { JobWithAssignee, PersonJobStats } from "@/lib/jobs";
 import type { RoutineWithProgress } from "@/lib/routines";
+import { taskIconForTitle } from "@/lib/task-icons";
 import { HubChrome } from "@/components/HubChrome";
 import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
+import { TaskCard, type TaskCardModel } from "@/components/TaskCard";
+import { TaskLogModal } from "@/components/TaskLogModal";
 import { Page } from "@/components/layout";
 
 const Section = styled.section`
@@ -22,58 +25,25 @@ const SectionTitle = styled.h2`
   letter-spacing: -0.02em;
 `;
 
-const Stack = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 0.55rem;
-`;
-
-const Item = styled.div`
+const Grid = styled.div`
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 0.85rem;
-  align-items: center;
-  min-height: 4rem;
-  padding: 0.85rem 1rem;
-  border-radius: ${({ theme }) => theme.sizes.radius};
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme }) => theme.colors.panelStrong};
-`;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
 
-const Swatch = styled.span<{ $color: string }>`
-  width: 0.7rem;
-  align-self: stretch;
-  border-radius: 999px;
-  background: ${({ $color }) => $color};
-`;
+  @media (max-width: 1100px) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 
-const Title = styled.div`
-  font-size: 1.2rem;
-  font-weight: 700;
-`;
-
-const Meta = styled.div`
-  color: ${({ theme }) => theme.colors.inkMuted};
-  font-size: 1rem;
-  margin-top: 0.15rem;
-`;
-
-const Badge = styled.span`
-  min-height: 2.5rem;
-  display: inline-flex;
-  align-items: center;
-  padding: 0 0.85rem;
-  border-radius: 999px;
-  background: ${({ theme }) => theme.colors.panel};
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  font-weight: 700;
-  font-size: 0.95rem;
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
 `;
 
 const Empty = styled.p`
   margin: 0;
   color: ${({ theme }) => theme.colors.inkMuted};
   font-size: 1.1rem;
+  grid-column: 1 / -1;
 `;
 
 const BANDS = [
@@ -89,6 +59,10 @@ type RoutinesBoardProps = {
   jobStats: Map<number, PersonJobStats>;
 };
 
+function demoStreak(seed: number) {
+  return (seed % 7) + 1;
+}
+
 export function RoutinesBoard({
   people,
   routines,
@@ -96,6 +70,7 @@ export function RoutinesBoard({
   jobStats,
 }: RoutinesBoardProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
+  const [activeTask, setActiveTask] = useState<TaskCardModel | null>(null);
 
   const filteredRoutines = useMemo(
     () =>
@@ -113,11 +88,45 @@ export function RoutinesBoard({
     [jobs, selectedIds],
   );
 
+  const routineTasksByBand = useMemo(() => {
+    const map: Record<string, TaskCardModel[]> = {
+      morning: [],
+      afternoon: [],
+      evening: [],
+    };
+    for (const routine of filteredRoutines) {
+      map[routine.band]?.push({
+        id: `routine-${routine.id}`,
+        title: routine.title,
+        icon: taskIconForTitle(routine.title),
+        streak: demoStreak(routine.id + routine.personId),
+        personName: routine.person.name,
+        personColor: routine.person.color,
+        kind: "routine",
+      });
+    }
+    return map;
+  }, [filteredRoutines]);
+
+  const jobTasks = useMemo<TaskCardModel[]>(
+    () =>
+      filteredJobs.map((job) => ({
+        id: `job-${job.id}`,
+        title: job.title,
+        icon: taskIconForTitle(job.title),
+        streak: demoStreak(job.id * 3 + (job.assigneeId ?? 0)),
+        personName: job.assignee?.name ?? "Unassigned",
+        personColor: job.assignee?.color ?? "#3F6F5B",
+        kind: "job" as const,
+      })),
+    [filteredJobs],
+  );
+
   return (
     <Page>
       <HubChrome
         title="Routines"
-        subtitle="Morning · Afternoon · Evening · Jobs (all day)"
+        subtitle="Morning · Afternoon · Evening · Jobs"
       />
 
       <PersonCards
@@ -130,59 +139,39 @@ export function RoutinesBoard({
       />
 
       {BANDS.map((band) => {
-        const items = filteredRoutines.filter(
-          (routine) => routine.band === band.id,
-        );
+        const items = routineTasksByBand[band.id] ?? [];
         return (
           <Section key={band.id}>
             <SectionTitle>{band.label}</SectionTitle>
-            <Stack>
+            <Grid>
               {items.length === 0 ? (
                 <Empty>No {band.label.toLowerCase()} routines.</Empty>
               ) : (
-                items.map((routine) => (
-                  <Item key={routine.id}>
-                    <Swatch $color={routine.person.color} />
-                    <div>
-                      <Title>{routine.title}</Title>
-                      <Meta>
-                        {routine.person.name} · {routine.checkedStepIds.length}/
-                        {routine.steps.length} steps
-                      </Meta>
-                    </div>
-                    <Badge>
-                      {routine.completed ? "Done" : "In progress"}
-                    </Badge>
-                  </Item>
+                items.map((task) => (
+                  <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
                 ))
               )}
-            </Stack>
+            </Grid>
           </Section>
         );
       })}
 
       <Section>
-        <SectionTitle>Jobs · All day</SectionTitle>
-        <Stack>
-          {filteredJobs.length === 0 ? (
-            <Empty>No jobs for the selected people.</Empty>
+        <SectionTitle>Jobs</SectionTitle>
+        <Grid>
+          {jobTasks.length === 0 ? (
+            <Empty>No jobs for the selected kids.</Empty>
           ) : (
-            filteredJobs.map((job) => (
-              <Item key={job.id}>
-                <Swatch $color={job.assignee?.color ?? "#3F6F5B"} />
-                <div>
-                  <Title>{job.title}</Title>
-                  <Meta>
-                    {job.assignee?.name ?? "Unassigned"} ·{" "}
-                    {job.status === "done" ? "Done" : "Open"}
-                  </Meta>
-                </div>
-                <Badge>{job.status === "done" ? "✓" : "○"}</Badge>
-              </Item>
+            jobTasks.map((task) => (
+              <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
             ))
           )}
-        </Stack>
+        </Grid>
       </Section>
+
+      {activeTask ? (
+        <TaskLogModal task={activeTask} onClose={() => setActiveTask(null)} />
+      ) : null}
     </Page>
   );
 }

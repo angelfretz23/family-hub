@@ -49,7 +49,8 @@ export function ensureRoutinesSeeded() {
     },
   ];
 
-  for (const person of family) {
+  const kids = family.filter((person) => person.role === "child");
+  for (const person of kids) {
     templates.forEach((template, routineIndex) => {
       const routine = db
         .insert(routines)
@@ -73,8 +74,8 @@ export function ensureRoutinesSeeded() {
           .run();
       });
 
-      // Progress demo: mark first morning step done for kids
-      if (person.role === "child" && template.band === "morning") {
+      // Progress demo: mark first morning step done
+      if (template.band === "morning") {
         const run = ensureRun(routine.id, person.id, toDateKey(new Date()));
         const firstStep = db
           .select()

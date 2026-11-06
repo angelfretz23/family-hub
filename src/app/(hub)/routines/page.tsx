@@ -12,16 +12,20 @@ export default function RoutinesPage() {
   ensureRoutinesSeeded();
 
   const dateKey = toDateKey(new Date());
-  const people = listPeople(true);
-  const routines = listRoutinesForToday(dateKey).filter((routine) =>
-    Boolean(routine.person),
+  const kids = listPeople(true).filter((person) => person.role === "child");
+  const kidIds = new Set(kids.map((kid) => kid.id));
+
+  const routines = listRoutinesForToday(dateKey).filter(
+    (routine) => routine.person && kidIds.has(routine.personId),
   );
-  const jobs = listJobsForDay(dateKey);
+  const jobs = listJobsForDay(dateKey).filter(
+    (job) => job.assigneeId && kidIds.has(job.assigneeId),
+  );
   const jobStats = jobStatsByPerson(dateKey);
 
   return (
     <RoutinesBoard
-      people={people}
+      people={kids}
       routines={routines}
       jobs={jobs}
       jobStats={jobStats}
