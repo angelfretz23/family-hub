@@ -7,12 +7,15 @@ import {
   formatTime,
   parseLocalIso,
 } from "@/lib/dates";
-import { PersonAvatarStack } from "@/components/PersonAvatarStack";
+import {
+  AVATAR_STACK_SLOT,
+  PersonAvatarStack,
+} from "@/components/PersonAvatarStack";
 
 const Card = styled.button`
   width: 100%;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: ${AVATAR_STACK_SLOT} 1fr;
   gap: 0.9rem;
   align-items: center;
   text-align: left;
@@ -79,7 +82,7 @@ function metaForDay(event: EventWithPeople, dayKey?: string) {
 export function EventCard({ event, onOpen, dayKey }: EventCardProps) {
   return (
     <Card type="button" onClick={() => onOpen(event)}>
-      <PersonAvatarStack people={event.people} size={2.55} />
+      <PersonAvatarStack people={event.people} size={2.55} slot />
       <Body>
         <Title>{event.title}</Title>
         <Meta>{metaForDay(event, dayKey)}</Meta>

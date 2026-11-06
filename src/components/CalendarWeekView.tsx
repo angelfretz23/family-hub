@@ -10,7 +10,10 @@ import {
   parseLocalIso,
   weekDayKeys,
 } from "@/lib/dates";
-import { PersonAvatarStack } from "@/components/PersonAvatarStack";
+import {
+  AVATAR_STACK_SLOT,
+  PersonAvatarStack,
+} from "@/components/PersonAvatarStack";
 
 const Shell = styled.div`
   display: flex;
@@ -77,7 +80,7 @@ const EventList = styled.div`
 const EventChip = styled.button`
   width: 100%;
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: ${AVATAR_STACK_SLOT} 1fr;
   gap: 0.75rem;
   align-items: center;
   text-align: left;
@@ -179,7 +182,7 @@ export function CalendarWeekView({
                     type="button"
                     onClick={() => onOpenEvent(event)}
                   >
-                    <PersonAvatarStack people={event.people} size={2.15} />
+                    <PersonAvatarStack people={event.people} size={2.15} slot />
                     <EventBody>
                       <EventTitle>{event.title}</EventTitle>
                       <EventMeta>{chipLabel(event)}</EventMeta>
