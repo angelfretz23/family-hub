@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import {
   createTask,
   ensureTasksSeeded,
-  listTasksForKids,
+  listTaskTemplates,
 } from "@/lib/tasks";
 import type { TaskBand, TaskVariant } from "@/db/schema";
 
@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   ensureTasksSeeded();
-  return NextResponse.json(listTasksForKids());
+  return NextResponse.json(listTaskTemplates());
 }
 
 export async function POST(request: Request) {
@@ -18,15 +18,14 @@ export async function POST(request: Request) {
     const body = (await request.json()) as {
       title?: string;
       icon?: string;
-      personId?: number;
       band?: TaskBand;
       variants?: TaskVariant[];
       starReward?: number;
     };
 
-    if (!body.title?.trim() || !body.personId || !body.band) {
+    if (!body.title?.trim() || !body.band) {
       return NextResponse.json(
-        { error: "title, personId, and band are required" },
+        { error: "title and band are required" },
         { status: 400 },
       );
     }
@@ -34,7 +33,6 @@ export async function POST(request: Request) {
     const task = createTask({
       title: body.title,
       icon: body.icon,
-      personId: body.personId,
       band: body.band,
       variants: body.variants?.length ? body.variants : ["boolean"],
       starReward: body.starReward,
@@ -42,7 +40,8 @@ export async function POST(request: Request) {
 
     return NextResponse.json(task, { status: 201 });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unable to create task";
+    const message =
+      error instanceof Error ? error.message : "Unable to create task";
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

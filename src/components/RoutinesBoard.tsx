@@ -3,10 +3,9 @@
 import { useMemo, useState } from "react";
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
-import type { PersonJobStats } from "@/lib/jobs";
-import type { TaskWithMeta } from "@/lib/tasks";
+import type { PersonStarStats, TaskWithMeta } from "@/lib/tasks";
 import { HubChrome } from "@/components/HubChrome";
-import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
+import { PersonCards } from "@/components/PersonCards";
 import { TaskCard } from "@/components/TaskCard";
 import { TaskEditorModal } from "@/components/TaskEditorModal";
 import { TaskLogModal } from "@/components/TaskLogModal";
@@ -53,6 +52,16 @@ const Empty = styled.p`
   grid-column: 1 / -1;
 `;
 
+const Prompt = styled.div`
+  padding: 1.25rem 1.35rem;
+  border-radius: ${({ theme }) => theme.sizes.radius};
+  border: 1px dashed ${({ theme }) => theme.colors.stroke};
+  background: ${({ theme }) => theme.colors.panel};
+  color: ${({ theme }) => theme.colors.inkMuted};
+  font-size: 1.2rem;
+  font-weight: 650;
+`;
+
 const AddButton = styled.button`
   min-height: 3rem;
   padding: 0 1.1rem;
@@ -74,29 +83,35 @@ const BANDS = [
 
 type RoutinesBoardProps = {
   people: Person[];
-  tasks: TaskWithMeta[];
-  jobStats: Map<number, PersonJobStats>;
+  /** All kids' personalized task lists keyed by person id. */
+  tasksByPerson: Record<number, TaskWithMeta[]>;
+  starStats: Map<number, PersonStarStats>;
 };
 
-export function RoutinesBoard({ people, tasks, jobStats }: RoutinesBoardProps) {
-  const [selectedIds, setSelectedIds] = useState<number[]>([]);
+export function RoutinesBoard({
+  people,
+  tasksByPerson,
+  starStats,
+}: RoutinesBoardProps) {
+  const [selectedIds, setSelectedIds] = useState<number[]>(
+    people[0] ? [people[0].id] : [],
+  );
   const [activeTask, setActiveTask] = useState<TaskWithMeta | null>(null);
   const [adding, setAdding] = useState(false);
 
-  const filteredTasks = useMemo(
-    () =>
-      filterBySelectedPeople(tasks, selectedIds, (task) => [task.personId]),
-    [tasks, selectedIds],
-  );
+  const selectedId = selectedIds[0] ?? null;
+  const selectedPerson = people.find((person) => person.id === selectedId) ?? null;
 
-  const defaultPersonId =
-    selectedIds.length === 1 ? selectedIds[0] : people[0]?.id ?? null;
+  const tasks = useMemo(
+    () => (selectedId ? tasksByPerson[selectedId] ?? [] : []),
+    [selectedId, tasksByPerson],
+  );
 
   return (
     <Page>
       <HubChrome
         title="Routines"
-        subtitle="Morning · Afternoon · Evening · Jobs"
+        subtitle="Select a kid, then tap a task to log it under them"
         trailing={
           <AddButton type="button" onClick={() => setAdding(true)}>
             Add task
@@ -108,41 +123,61 @@ export function RoutinesBoard({ people, tasks, jobStats }: RoutinesBoardProps) {
         people={people}
         selectedIds={selectedIds}
         onChange={setSelectedIds}
-        jobStats={jobStats}
+        starStats={starStats}
+        showStarStats
         showJobStats
+        jobStats={
+          new Map(
+            [...starStats.entries()].map(([id, stat]) => [
+              id,
+              {
+                personId: id,
+                completed: stat.jobsCompleted,
+                total: stat.jobsTotal,
+              },
+            ]),
+          )
+        }
         selectable
+        selectionMode="single"
       />
 
-      {BANDS.map((band) => {
-        const items = filteredTasks.filter((task) => task.band === band.id);
-        return (
-          <Section key={band.id}>
-            <SectionHeader>
-              <SectionTitle>{band.label}</SectionTitle>
-            </SectionHeader>
-            <Grid>
-              {items.length === 0 ? (
-                <Empty>No {band.label.toLowerCase()} tasks yet.</Empty>
-              ) : (
-                items.map((task) => (
-                  <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
-                ))
-              )}
-            </Grid>
-          </Section>
-        );
-      })}
+      {!selectedPerson ? (
+        <Prompt>Select a kid above to view and log routines.</Prompt>
+      ) : (
+        BANDS.map((band) => {
+          const items = tasks.filter((task) => task.band === band.id);
+          return (
+            <Section key={band.id}>
+              <SectionHeader>
+                <SectionTitle>
+                  {band.label}
+                  <span style={{ opacity: 0.55, fontSize: "1.1rem" }}>
+                    {" "}
+                    · {selectedPerson.name}
+                  </span>
+                </SectionTitle>
+              </SectionHeader>
+              <Grid>
+                {items.length === 0 ? (
+                  <Empty>No {band.label.toLowerCase()} tasks yet.</Empty>
+                ) : (
+                  items.map((task) => (
+                    <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
+                  ))
+                )}
+              </Grid>
+            </Section>
+          );
+        })
+      )}
 
       {activeTask ? (
         <TaskLogModal task={activeTask} onClose={() => setActiveTask(null)} />
       ) : null}
 
       {adding ? (
-        <TaskEditorModal
-          kids={people}
-          defaultPersonId={defaultPersonId}
-          onClose={() => setAdding(false)}
-        />
+        <TaskEditorModal onClose={() => setAdding(false)} />
       ) : null}
     </Page>
   );

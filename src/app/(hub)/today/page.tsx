@@ -11,7 +11,11 @@ import {
 } from "@/lib/events";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
 import { listRules } from "@/lib/rules";
-import { ensureTasksSeeded, jobStatsFromTasks } from "@/lib/tasks";
+import {
+  ensureTasksSeeded,
+  jobStatsFromTasks,
+  starStatsByPerson,
+} from "@/lib/tasks";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +31,7 @@ export default function TodayPage() {
   const rules = listRules(true);
   const dateKey = toDateKey(new Date());
   const jobStats = jobStatsFromTasks(dateKey);
+  const starStats = starStatsByPerson(dateKey);
 
   return (
     <Page>
@@ -35,7 +40,9 @@ export default function TodayPage() {
       <PersonCards
         people={kids}
         showJobStats
+        showStarStats
         jobStats={jobStats}
+        starStats={starStats}
         variant="portrait"
       />
 

@@ -3,6 +3,7 @@
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
 import type { PersonJobStats } from "@/lib/jobs";
+import type { PersonStarStats } from "@/lib/tasks";
 
 const Row = styled.div<{ $portrait: boolean; $count: number }>`
   display: grid;
@@ -194,9 +195,13 @@ export type PersonCardsProps = {
   selectedIds?: number[];
   onChange?: (ids: number[]) => void;
   jobStats?: Map<number, PersonJobStats>;
+  starStats?: Map<number, PersonStarStats>;
   showJobStats?: boolean;
+  showStarStats?: boolean;
   /** Filter mode: tap to select people. Off = display-only cards. */
   selectable?: boolean;
+  /** single = one kid at a time (Routines). multi = toggle many. */
+  selectionMode?: "single" | "multi";
   /** Today uses portrait cards: large photo, name, then job tally. */
   variant?: "compact" | "portrait";
 };
@@ -206,19 +211,41 @@ export function PersonCards({
   selectedIds = [],
   onChange,
   jobStats,
+  starStats,
   showJobStats = false,
+  showStarStats = false,
   selectable = false,
+  selectionMode = "multi",
   variant = "compact",
 }: PersonCardsProps) {
   const portrait = variant === "portrait";
 
   function toggle(id: number) {
     if (!onChange) return;
+    if (selectionMode === "single") {
+      onChange(selectedIds.includes(id) ? [] : [id]);
+      return;
+    }
     if (selectedIds.includes(id)) {
       onChange(selectedIds.filter((value) => value !== id));
       return;
     }
     onChange([...selectedIds, id]);
+  }
+
+  function tallyFor(personId: number) {
+    const stars = starStats?.get(personId);
+    const jobs = jobStats?.get(personId);
+    const parts: string[] = [];
+    if (showStarStats) {
+      parts.push(`⭐ ${stars?.starsToday ?? 0} today`);
+    }
+    if (showJobStats) {
+      parts.push(
+        jobs ? `${jobs.completed}/${jobs.total} jobs` : "0/0 jobs",
+      );
+    }
+    return parts.join(" · ");
   }
 
   return (
@@ -229,12 +256,13 @@ export function PersonCards({
       $count={people.length}
     >
       {people.map((person) => {
-        const stats = jobStats?.get(person.id);
         const selected =
-          selectedIds.length === 0 ? true : selectedIds.includes(person.id);
-        const tally = stats
-          ? `${stats.completed}/${stats.total} jobs`
-          : "0/0 jobs";
+          selectionMode === "single"
+            ? selectedIds.includes(person.id)
+            : selectedIds.length === 0
+              ? true
+              : selectedIds.includes(person.id);
+        const tally = tallyFor(person.id);
 
         if (portrait) {
           return (
@@ -242,7 +270,9 @@ export function PersonCards({
               <PortraitAvatarView person={person} />
               <PortraitCopy>
                 <PortraitName>{person.name}</PortraitName>
-                {showJobStats ? <PortraitStats>{tally}</PortraitStats> : null}
+                {showJobStats || showStarStats ? (
+                  <PortraitStats>{tally}</PortraitStats>
+                ) : null}
               </PortraitCopy>
             </PortraitCard>
           );
@@ -253,7 +283,7 @@ export function PersonCards({
             <CompactAvatar person={person} />
             <Copy>
               <Name>{person.name}</Name>
-              {showJobStats ? <Stats>{tally}</Stats> : null}
+              {showJobStats || showStarStats ? <Stats>{tally}</Stats> : null}
             </Copy>
           </>
         );
@@ -273,7 +303,7 @@ export function PersonCards({
             $selected={selected}
             $color={person.color}
             onClick={() => toggle(person.id)}
-            aria-pressed={selectedIds.length === 0 ? true : selected}
+            aria-pressed={selected}
           >
             {body}
           </CardButton>

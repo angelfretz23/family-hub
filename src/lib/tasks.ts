@@ -1,4 +1,4 @@
-import { and, asc, desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
 import {
   people,
@@ -18,12 +18,13 @@ export type TaskWithMeta = Task & {
   variantsList: TaskVariant[];
   todayLog: TaskLog | null;
   streak: number;
+  /** True after this kid has logged the task at least once today. */
+  loggedForPerson: boolean;
 };
 
 export type TaskInput = {
   title: string;
   icon?: string;
-  personId: number;
   band: TaskBand;
   variants: TaskVariant[];
   starReward?: number;
@@ -39,6 +40,14 @@ export type TaskLogInput = {
   countValue?: number | null;
   bookTitle?: string | null;
   notes?: string;
+};
+
+export type PersonStarStats = {
+  personId: number;
+  starsToday: number;
+  starsTotal: number;
+  jobsCompleted: number;
+  jobsTotal: number;
 };
 
 const ALL_VARIANTS: TaskVariant[] = ["boolean", "time", "count", "reading"];
@@ -57,7 +66,9 @@ export function parseVariants(raw: string): TaskVariant[] {
 }
 
 function serializeVariants(variants: TaskVariant[]) {
-  const unique = [...new Set(variants.length ? variants : (["boolean"] as TaskVariant[]))];
+  const unique = [
+    ...new Set(variants.length ? variants : (["boolean"] as TaskVariant[])),
+  ];
   return JSON.stringify(unique);
 }
 
@@ -70,7 +81,6 @@ type SeedTask = {
 };
 
 const PRESET_TASKS: SeedTask[] = [
-  // Morning
   {
     title: "Brush teeth",
     icon: "🪥",
@@ -106,7 +116,6 @@ const PRESET_TASKS: SeedTask[] = [
     variants: ["boolean", "time"],
     starReward: 3,
   },
-  // Afternoon — homeschool
   {
     title: "Play piano",
     icon: "🎹",
@@ -142,7 +151,6 @@ const PRESET_TASKS: SeedTask[] = [
     variants: ["boolean", "time"],
     starReward: 2,
   },
-  // Evening
   {
     title: "Clear dishes",
     icon: "🍽️",
@@ -178,7 +186,6 @@ const PRESET_TASKS: SeedTask[] = [
     variants: ["boolean", "time", "reading"],
     starReward: 4,
   },
-  // Jobs (all day)
   {
     title: "Feed the dog",
     icon: "🐕",
@@ -206,26 +213,20 @@ export function ensureTasksSeeded() {
   const existing = db.select().from(tasks).all();
   if (existing.length > 0) return;
 
-  const kids = listPeople(true).filter((person) => person.role === "child");
-  if (kids.length === 0) return;
   const now = toLocalIso(new Date());
-
-  kids.forEach((kid) => {
-    PRESET_TASKS.forEach((preset, index) => {
-      db.insert(tasks)
-        .values({
-          title: preset.title,
-          icon: preset.icon,
-          personId: kid.id,
-          band: preset.band,
-          variants: serializeVariants(preset.variants),
-          starReward: preset.starReward,
-          sortOrder: index,
-          active: true,
-          createdAt: now,
-        })
-        .run();
-    });
+  PRESET_TASKS.forEach((preset, index) => {
+    db.insert(tasks)
+      .values({
+        title: preset.title,
+        icon: preset.icon,
+        band: preset.band,
+        variants: serializeVariants(preset.variants),
+        starReward: preset.starReward,
+        sortOrder: index,
+        active: true,
+        createdAt: now,
+      })
+      .run();
   });
 }
 
@@ -251,7 +252,6 @@ function todayLogFor(taskId: number, personId: number, dateKey: string) {
 function computeStreak(taskId: number, personId: number, fromDate = new Date()) {
   let streak = 0;
   let cursor = startOfLocalDay(fromDate);
-  // If today not completed yet, start from yesterday for ongoing streak display
   const todayKey = toDateKey(cursor);
   const today = todayLogFor(taskId, personId, todayKey);
   if (!today?.completed) {
@@ -272,46 +272,55 @@ function startOfLocalDay(date: Date) {
   return new Date(date.getFullYear(), date.getMonth(), date.getDate());
 }
 
-export function listTasksForKids(
+/** Shared task templates personalized for one selected kid. */
+export function listTasksForPerson(
+  personId: number,
   dateKey = toDateKey(new Date()),
 ): TaskWithMeta[] {
   ensureTasksSeeded();
-  const kids = listPeople(true).filter((person) => person.role === "child");
-  const byId = new Map(kids.map((kid) => [kid.id, kid]));
-  const kidIds = new Set(kids.map((kid) => kid.id));
+  const person = getPerson(personId);
+  if (!person || person.role !== "child") return [];
 
   const rows = db
     .select()
     .from(tasks)
     .where(eq(tasks.active, true))
     .orderBy(asc(tasks.sortOrder), asc(tasks.id))
-    .all()
-    .filter((task) => kidIds.has(task.personId));
+    .all();
 
   return rows.map((task) => {
-    const person = byId.get(task.personId)!;
+    const todayLog = todayLogFor(task.id, personId, dateKey) ?? null;
     return {
       ...task,
       person,
       variantsList: parseVariants(task.variants),
-      todayLog: todayLogFor(task.id, task.personId, dateKey) ?? null,
-      streak: computeStreak(task.id, task.personId),
+      todayLog,
+      streak: computeStreak(task.id, personId),
+      loggedForPerson: Boolean(todayLog),
     };
   });
 }
 
-export function createTask(input: TaskInput) {
-  const person = getPerson(input.personId);
-  if (!person || person.role !== "child") {
-    throw new Error("Tasks can only be assigned to kids");
-  }
+export function listTaskTemplates() {
+  ensureTasksSeeded();
+  return db
+    .select()
+    .from(tasks)
+    .where(eq(tasks.active, true))
+    .orderBy(asc(tasks.sortOrder), asc(tasks.id))
+    .all()
+    .map((task) => ({
+      ...task,
+      variantsList: parseVariants(task.variants),
+    }));
+}
 
+export function createTask(input: TaskInput) {
   return db
     .insert(tasks)
     .values({
       title: input.title.trim(),
       icon: input.icon?.trim() || "⭐",
-      personId: input.personId,
       band: input.band,
       variants: serializeVariants(input.variants),
       starReward: input.starReward ?? 1,
@@ -330,6 +339,10 @@ export function getTask(id: number) {
 export function logTask(input: TaskLogInput) {
   const task = getTask(input.taskId);
   if (!task) throw new Error("Task not found");
+  const person = getPerson(input.personId);
+  if (!person || person.role !== "child") {
+    throw new Error("Logs must belong to a kid");
+  }
 
   const logDate = input.logDate ?? toDateKey(new Date());
   const completed = input.completed ?? true;
@@ -371,21 +384,66 @@ export function logTask(input: TaskLogInput) {
     .get();
 }
 
+export function starStatsByPerson(dateKey = toDateKey(new Date())) {
+  ensureTasksSeeded();
+  const kids = listPeople(true).filter((person) => person.role === "child");
+  const jobTasks = db
+    .select()
+    .from(tasks)
+    .where(and(eq(tasks.active, true), eq(tasks.band, "job")))
+    .all();
+  const stats = new Map<number, PersonStarStats>();
+
+  for (const kid of kids) {
+    const todayLogs = db
+      .select()
+      .from(taskLogs)
+      .where(and(eq(taskLogs.personId, kid.id), eq(taskLogs.logDate, dateKey)))
+      .all();
+    const starsToday = todayLogs.reduce(
+      (sum, log) => sum + (log.starsEarned || 0),
+      0,
+    );
+
+    const totalRow = db
+      .select({
+        total: sql<number>`coalesce(sum(${taskLogs.starsEarned}), 0)`,
+      })
+      .from(taskLogs)
+      .where(eq(taskLogs.personId, kid.id))
+      .get();
+
+    let jobsCompleted = 0;
+    for (const job of jobTasks) {
+      const log = todayLogFor(job.id, kid.id, dateKey);
+      if (log?.completed) jobsCompleted += 1;
+    }
+
+    stats.set(kid.id, {
+      personId: kid.id,
+      starsToday,
+      starsTotal: Number(totalRow?.total ?? 0),
+      jobsCompleted,
+      jobsTotal: jobTasks.length,
+    });
+  }
+
+  return stats;
+}
+
+/** @deprecated use starStatsByPerson — kept for Today person cards job tally shape */
 export function jobStatsFromTasks(dateKey = toDateKey(new Date())) {
-  const all = listTasksForKids(dateKey).filter((task) => task.band === "job");
-  const stats = new Map<
+  const stars = starStatsByPerson(dateKey);
+  const map = new Map<
     number,
     { personId: number; completed: number; total: number }
   >();
-  for (const task of all) {
-    const current = stats.get(task.personId) ?? {
-      personId: task.personId,
-      completed: 0,
-      total: 0,
-    };
-    current.total += 1;
-    if (task.todayLog?.completed) current.completed += 1;
-    stats.set(task.personId, current);
+  for (const [personId, stat] of stars) {
+    map.set(personId, {
+      personId,
+      completed: stat.jobsCompleted,
+      total: stat.jobsTotal,
+    });
   }
-  return stats;
+  return map;
 }

@@ -194,7 +194,7 @@ export function TaskLogModal({ task, onClose }: TaskLogModalProps) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           taskId: task.id,
-          personId: task.personId,
+          personId: task.person.id,
           completed: hasBoolean ? completed : true,
           minutes: hasTime && minutes !== "" ? Number(minutes) : null,
           countValue: hasCount && countValue !== "" ? Number(countValue) : null,

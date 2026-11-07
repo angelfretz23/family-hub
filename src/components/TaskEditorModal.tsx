@@ -4,7 +4,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import styled from "styled-components";
-import type { Person, TaskBand, TaskVariant } from "@/db/schema";
+import type { TaskBand, TaskVariant } from "@/db/schema";
 
 const Overlay = styled.div`
   position: fixed;
@@ -137,23 +137,14 @@ const BAND_OPTIONS: Array<{ id: TaskBand; label: string }> = [
 ];
 
 type TaskEditorModalProps = {
-  kids: Person[];
-  defaultPersonId?: number | null;
   onClose: () => void;
 };
 
-export function TaskEditorModal({
-  kids,
-  defaultPersonId,
-  onClose,
-}: TaskEditorModalProps) {
+export function TaskEditorModal({ onClose }: TaskEditorModalProps) {
   const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [title, setTitle] = useState("");
   const [icon, setIcon] = useState("⭐");
-  const [personId, setPersonId] = useState(
-    String(defaultPersonId ?? kids[0]?.id ?? ""),
-  );
   const [band, setBand] = useState<TaskBand>("morning");
   const [variants, setVariants] = useState<TaskVariant[]>(["boolean"]);
   const [starReward, setStarReward] = useState("2");
@@ -190,7 +181,6 @@ export function TaskEditorModal({
         body: JSON.stringify({
           title,
           icon,
-          personId: Number(personId),
           band,
           variants,
           starReward: Number(starReward) || 1,
@@ -222,7 +212,11 @@ export function TaskEditorModal({
         onClick={(event) => event.stopPropagation()}
         onSubmit={onSubmit}
       >
-        <Title id="task-editor-title">Add routine / job</Title>
+        <Title id="task-editor-title">Add shared routine / job</Title>
+        <Hint>
+          New tasks are shared templates. Select a kid on the Routines page,
+          then tap the card to log it under them.
+        </Hint>
 
         <Field>
           Task name
@@ -241,21 +235,6 @@ export function TaskEditorModal({
             onChange={(event) => setIcon(event.target.value)}
             maxLength={4}
           />
-        </Field>
-
-        <Field>
-          Kid
-          <Select
-            value={personId}
-            onChange={(event) => setPersonId(event.target.value)}
-            required
-          >
-            {kids.map((kid) => (
-              <option key={kid.id} value={kid.id}>
-                {kid.name}
-              </option>
-            ))}
-          </Select>
         </Field>
 
         <Field>
@@ -308,7 +287,7 @@ export function TaskEditorModal({
           <Button type="button" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" $primary disabled={saving || !kids.length}>
+          <Button type="submit" $primary disabled={saving}>
             {saving ? "Saving…" : "Add task"}
           </Button>
         </Actions>

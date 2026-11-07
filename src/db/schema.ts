@@ -111,9 +111,6 @@ export const tasks = sqliteTable("tasks", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   title: text("title").notNull(),
   icon: text("icon").notNull().default("⭐"),
-  personId: integer("person_id")
-    .notNull()
-    .references(() => people.id, { onDelete: "cascade" }),
   band: text("band", {
     enum: ["morning", "afternoon", "evening", "job"],
   })

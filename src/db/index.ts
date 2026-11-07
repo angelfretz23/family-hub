@@ -107,32 +107,6 @@ sqlite.exec(`
     PRIMARY KEY (run_id, step_id)
   );
 
-  CREATE TABLE IF NOT EXISTS tasks (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    icon TEXT NOT NULL DEFAULT '⭐',
-    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
-    band TEXT NOT NULL DEFAULT 'morning',
-    variants TEXT NOT NULL DEFAULT '["boolean"]',
-    star_reward INTEGER NOT NULL DEFAULT 1,
-    sort_order INTEGER NOT NULL DEFAULT 0,
-    active INTEGER NOT NULL DEFAULT 1,
-    created_at TEXT NOT NULL
-  );
-
-  CREATE TABLE IF NOT EXISTS task_logs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
-    log_date TEXT NOT NULL,
-    completed INTEGER NOT NULL DEFAULT 1,
-    minutes INTEGER,
-    count_value INTEGER,
-    book_title TEXT,
-    stars_earned INTEGER NOT NULL DEFAULT 0,
-    notes TEXT NOT NULL DEFAULT '',
-    created_at TEXT NOT NULL
-  );
 `);
 
 try {
@@ -140,6 +114,47 @@ try {
 } catch {
   // column already exists
 }
+
+/** Shared task templates (no person_id). Rebuild once from the per-kid model. */
+(function migrateSharedTasks() {
+  const taskCols = sqlite.prepare(`PRAGMA table_info(tasks)`).all() as Array<{
+    name: string;
+  }>;
+  const hasTasks = taskCols.length > 0;
+  const hasPersonId = taskCols.some((column) => column.name === "person_id");
+
+  if (!hasTasks || hasPersonId) {
+    sqlite.exec(`DROP TABLE IF EXISTS task_logs`);
+    sqlite.exec(`DROP TABLE IF EXISTS tasks`);
+    sqlite.exec(`
+      CREATE TABLE tasks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        title TEXT NOT NULL,
+        icon TEXT NOT NULL DEFAULT '⭐',
+        band TEXT NOT NULL DEFAULT 'morning',
+        variants TEXT NOT NULL DEFAULT '["boolean"]',
+        star_reward INTEGER NOT NULL DEFAULT 1,
+        sort_order INTEGER NOT NULL DEFAULT 0,
+        active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE task_logs (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+        log_date TEXT NOT NULL,
+        completed INTEGER NOT NULL DEFAULT 1,
+        minutes INTEGER,
+        count_value INTEGER,
+        book_title TEXT,
+        stars_earned INTEGER NOT NULL DEFAULT 0,
+        notes TEXT NOT NULL DEFAULT '',
+        created_at TEXT NOT NULL
+      );
+    `);
+  }
+})();
 
 export const db = drizzle(sqlite, { schema });
 export type Db = typeof db;

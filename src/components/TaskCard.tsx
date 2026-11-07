@@ -3,7 +3,7 @@
 import styled from "styled-components";
 import type { TaskWithMeta } from "@/lib/tasks";
 
-const Card = styled.button<{ $done: boolean }>`
+const Card = styled.button<{ $done: boolean; $logged: boolean; $color: string }>`
   width: 100%;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -12,9 +12,14 @@ const Card = styled.button<{ $done: boolean }>`
   min-height: 4.5rem;
   padding: 0.85rem 0.95rem;
   border-radius: ${({ theme }) => theme.sizes.radius};
-  border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme, $done }) =>
-    $done ? "rgba(63, 111, 91, 0.14)" : theme.colors.panelStrong};
+  border: 2px solid
+    ${({ $logged, $color, theme }) =>
+      $logged ? $color : theme.colors.stroke};
+  background: ${({ $logged, $done, $color, theme }) => {
+    if ($done) return `${$color}33`;
+    if ($logged) return `${$color}18`;
+    return theme.colors.panelStrong;
+  }};
   box-shadow: ${({ theme }) => theme.shadow.soft};
   text-align: left;
   color: inherit;
@@ -26,11 +31,12 @@ const Card = styled.button<{ $done: boolean }>`
   }
 `;
 
-const LeadingIcon = styled.span<{ $color: string }>`
+const LeadingIcon = styled.span<{ $color: string; $logged: boolean }>`
   width: 2.85rem;
   height: 2.85rem;
   border-radius: 0.9rem;
-  background: ${({ $color }) => $color};
+  background: ${({ $logged, $color, theme }) =>
+    $logged ? $color : theme.colors.panel};
   display: grid;
   place-items: center;
   font-size: 1.35rem;
@@ -89,17 +95,31 @@ type TaskCardProps = {
 
 export function TaskCard({ task, onOpen }: TaskCardProps) {
   const done = Boolean(task.todayLog?.completed);
+  const logged = task.loggedForPerson;
 
   return (
-    <Card type="button" $done={done} onClick={() => onOpen(task)}>
-      <LeadingIcon $color={task.person.color} aria-hidden="true">
+    <Card
+      type="button"
+      $done={done}
+      $logged={logged}
+      $color={task.person.color}
+      onClick={() => onOpen(task)}
+    >
+      <LeadingIcon
+        $color={task.person.color}
+        $logged={logged}
+        aria-hidden="true"
+      >
         {task.icon}
       </LeadingIcon>
       <Copy>
         <Name>{task.title}</Name>
         <Sub>
-          {task.person.name}
-          {done ? " · Done today" : ""}
+          {logged
+            ? done
+              ? `${task.person.name} · Done today`
+              : `${task.person.name} · Logged`
+            : `Tap to log for ${task.person.name}`}
         </Sub>
       </Copy>
       <Trailing>
