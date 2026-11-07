@@ -255,6 +255,11 @@ export function TaskLogModal({ task, onClose }: TaskLogModalProps) {
               onChange={(event) => setCompleted(event.target.checked)}
             />
             Mark completed
+            {!completed && task.loggedForPerson ? (
+              <span style={{ fontWeight: 600, opacity: 0.75 }}>
+                (save to clear today’s log)
+              </span>
+            ) : null}
           </CheckRow>
         ) : null}
 
@@ -313,7 +318,11 @@ export function TaskLogModal({ task, onClose }: TaskLogModalProps) {
             Cancel
           </Button>
           <Button type="submit" $primary disabled={saving}>
-            {saving ? "Saving…" : "Save log"}
+            {saving
+              ? "Saving…"
+              : hasBoolean && !completed && task.loggedForPerson
+                ? "Clear log"
+                : "Save log"}
           </Button>
         </Actions>
       </Dialog>

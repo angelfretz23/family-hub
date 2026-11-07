@@ -336,6 +336,14 @@ export function getTask(id: number) {
   return db.select().from(tasks).where(eq(tasks.id, id)).get();
 }
 
+export function clearTaskLog(taskId: number, personId: number, logDate?: string) {
+  const dateKey = logDate ?? toDateKey(new Date());
+  const existing = todayLogFor(taskId, personId, dateKey);
+  if (!existing) return null;
+  db.delete(taskLogs).where(eq(taskLogs.id, existing.id)).run();
+  return { cleared: true as const, id: existing.id };
+}
+
 export function logTask(input: TaskLogInput) {
   const task = getTask(input.taskId);
   if (!task) throw new Error("Task not found");
@@ -346,7 +354,13 @@ export function logTask(input: TaskLogInput) {
 
   const logDate = input.logDate ?? toDateKey(new Date());
   const completed = input.completed ?? true;
-  const starsEarned = completed ? task.starReward : 0;
+
+  // Unchecking "done" removes today's log so the card leaves this kid.
+  if (!completed) {
+    return clearTaskLog(task.id, input.personId, logDate);
+  }
+
+  const starsEarned = task.starReward;
   const now = toLocalIso(new Date());
 
   const existing = todayLogFor(task.id, input.personId, logDate);
@@ -354,7 +368,7 @@ export function logTask(input: TaskLogInput) {
     return db
       .update(taskLogs)
       .set({
-        completed,
+        completed: true,
         minutes: input.minutes ?? null,
         countValue: input.countValue ?? null,
         bookTitle: input.bookTitle?.trim() || null,
@@ -372,7 +386,7 @@ export function logTask(input: TaskLogInput) {
       taskId: task.id,
       personId: input.personId,
       logDate,
-      completed,
+      completed: true,
       minutes: input.minutes ?? null,
       countValue: input.countValue ?? null,
       bookTitle: input.bookTitle?.trim() || null,
