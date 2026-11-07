@@ -1,5 +1,5 @@
 import { PersonCards } from "@/components/PersonCards";
-import { PlaceholderPanel } from "@/components/PlaceholderPanel";
+import { TodayCompletions } from "@/components/TodayCompletions";
 import { TodayHeader } from "@/components/TodayHeader";
 import { TodaySchedule } from "@/components/TodaySchedule";
 import { Page, TodayGrid, TodaySide } from "@/components/layout";
@@ -14,6 +14,7 @@ import { listRules } from "@/lib/rules";
 import {
   ensureTasksSeeded,
   jobStatsFromTasks,
+  listCompletedToday,
   starStatsByPerson,
 } from "@/lib/tasks";
 
@@ -32,6 +33,7 @@ export default function TodayPage() {
   const dateKey = toDateKey(new Date());
   const jobStats = jobStatsFromTasks(dateKey);
   const starStats = starStatsByPerson(dateKey);
+  const completed = listCompletedToday(dateKey);
 
   return (
     <Page>
@@ -49,14 +51,11 @@ export default function TodayPage() {
       <TodayGrid>
         <TodaySchedule people={people} events={events} dateKey={dateKey} />
         <TodaySide>
-          <PlaceholderPanel
-            heading="Routines"
-            body="Open the Routines tab for morning, afternoon, evening, and jobs."
+          <TodayCompletions
+            heading="Routines done"
+            items={completed.routines}
           />
-          <PlaceholderPanel
-            heading="Jobs due"
-            body="Job counts are on each family card above. Full list is under Routines."
-          />
+          <TodayCompletions heading="Jobs done" items={completed.jobs} />
         </TodaySide>
       </TodayGrid>
     </Page>

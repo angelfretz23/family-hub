@@ -447,3 +447,31 @@ export function jobStatsFromTasks(dateKey = toDateKey(new Date())) {
   }
   return map;
 }
+
+export type CompletedTaskEntry = TaskWithMeta & {
+  log: TaskLog;
+};
+
+/** Completed routines (non-job) and jobs for all kids today. */
+export function listCompletedToday(dateKey = toDateKey(new Date())) {
+  ensureTasksSeeded();
+  const kids = listPeople(true).filter((person) => person.role === "child");
+  const routines: CompletedTaskEntry[] = [];
+  const jobs: CompletedTaskEntry[] = [];
+
+  for (const kid of kids) {
+    for (const task of listTasksForPerson(kid.id, dateKey)) {
+      if (!task.todayLog?.completed) continue;
+      const entry: CompletedTaskEntry = { ...task, log: task.todayLog };
+      if (task.band === "job") jobs.push(entry);
+      else routines.push(entry);
+    }
+  }
+
+  const bySort = (a: CompletedTaskEntry, b: CompletedTaskEntry) =>
+    a.sortOrder - b.sortOrder || a.person.sortOrder - b.person.sortOrder;
+
+  routines.sort(bySort);
+  jobs.sort(bySort);
+  return { routines, jobs };
+}
