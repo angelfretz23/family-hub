@@ -42,8 +42,8 @@ const WeatherStack = styled.div`
 
 const WeatherIcon = styled.img`
   position: absolute;
-  top: -2.1rem;
-  left: -2.3rem;
+  top: -3.5rem;
+  left: -4rem;
   width: 7.8rem;
   height: 7.8rem;
   object-fit: contain;
