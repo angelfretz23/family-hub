@@ -9,10 +9,9 @@ import {
   ensureThreeDayAllDayDemo,
   listEventsForToday,
 } from "@/lib/events";
-import { ensureJobsSeeded, jobStatsByPerson } from "@/lib/jobs";
 import { ensurePeopleSeeded, listPeople } from "@/lib/people";
-import { ensureRoutinesSeeded } from "@/lib/routines";
 import { listRules } from "@/lib/rules";
+import { ensureTasksSeeded, jobStatsFromTasks } from "@/lib/tasks";
 
 export const dynamic = "force-dynamic";
 
@@ -20,15 +19,14 @@ export default function TodayPage() {
   ensurePeopleSeeded();
   ensureDemoEvents();
   ensureThreeDayAllDayDemo();
-  ensureJobsSeeded();
-  ensureRoutinesSeeded();
+  ensureTasksSeeded();
 
   const people = listPeople(true);
   const kids = people.filter((person) => person.role === "child");
   const events = listEventsForToday();
   const rules = listRules(true);
   const dateKey = toDateKey(new Date());
-  const jobStats = jobStatsByPerson(dateKey);
+  const jobStats = jobStatsFromTasks(dateKey);
 
   return (
     <Page>

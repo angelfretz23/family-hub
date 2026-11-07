@@ -3,18 +3,25 @@
 import { useMemo, useState } from "react";
 import styled from "styled-components";
 import type { Person } from "@/db/schema";
-import type { JobWithAssignee, PersonJobStats } from "@/lib/jobs";
-import type { RoutineWithProgress } from "@/lib/routines";
-import { taskIconForTitle } from "@/lib/task-icons";
+import type { PersonJobStats } from "@/lib/jobs";
+import type { TaskWithMeta } from "@/lib/tasks";
 import { HubChrome } from "@/components/HubChrome";
 import { PersonCards, filterBySelectedPeople } from "@/components/PersonCards";
-import { TaskCard, type TaskCardModel } from "@/components/TaskCard";
+import { TaskCard } from "@/components/TaskCard";
+import { TaskEditorModal } from "@/components/TaskEditorModal";
 import { TaskLogModal } from "@/components/TaskLogModal";
 import { Page } from "@/components/layout";
 
 const Section = styled.section`
   display: flex;
   flex-direction: column;
+  gap: 0.75rem;
+`;
+
+const SectionHeader = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 0.75rem;
 `;
 
@@ -46,87 +53,55 @@ const Empty = styled.p`
   grid-column: 1 / -1;
 `;
 
+const AddButton = styled.button`
+  min-height: 3rem;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  border: 1px solid ${({ theme }) => theme.colors.stroke};
+  background: ${({ theme }) => theme.colors.panelStrong};
+  color: ${({ theme }) => theme.colors.ink};
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+`;
+
 const BANDS = [
   { id: "morning", label: "Morning" },
   { id: "afternoon", label: "Afternoon" },
   { id: "evening", label: "Evening" },
+  { id: "job", label: "Jobs" },
 ] as const;
 
 type RoutinesBoardProps = {
   people: Person[];
-  routines: RoutineWithProgress[];
-  jobs: JobWithAssignee[];
+  tasks: TaskWithMeta[];
   jobStats: Map<number, PersonJobStats>;
 };
 
-function demoStreak(seed: number) {
-  return (seed % 7) + 1;
-}
-
-export function RoutinesBoard({
-  people,
-  routines,
-  jobs,
-  jobStats,
-}: RoutinesBoardProps) {
+export function RoutinesBoard({ people, tasks, jobStats }: RoutinesBoardProps) {
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
-  const [activeTask, setActiveTask] = useState<TaskCardModel | null>(null);
+  const [activeTask, setActiveTask] = useState<TaskWithMeta | null>(null);
+  const [adding, setAdding] = useState(false);
 
-  const filteredRoutines = useMemo(
+  const filteredTasks = useMemo(
     () =>
-      filterBySelectedPeople(routines, selectedIds, (routine) => [
-        routine.personId,
-      ]),
-    [routines, selectedIds],
+      filterBySelectedPeople(tasks, selectedIds, (task) => [task.personId]),
+    [tasks, selectedIds],
   );
 
-  const filteredJobs = useMemo(
-    () =>
-      filterBySelectedPeople(jobs, selectedIds, (job) =>
-        job.assigneeId ? [job.assigneeId] : [],
-      ),
-    [jobs, selectedIds],
-  );
-
-  const routineTasksByBand = useMemo(() => {
-    const map: Record<string, TaskCardModel[]> = {
-      morning: [],
-      afternoon: [],
-      evening: [],
-    };
-    for (const routine of filteredRoutines) {
-      map[routine.band]?.push({
-        id: `routine-${routine.id}`,
-        title: routine.title,
-        icon: taskIconForTitle(routine.title),
-        streak: demoStreak(routine.id + routine.personId),
-        personName: routine.person.name,
-        personColor: routine.person.color,
-        kind: "routine",
-      });
-    }
-    return map;
-  }, [filteredRoutines]);
-
-  const jobTasks = useMemo<TaskCardModel[]>(
-    () =>
-      filteredJobs.map((job) => ({
-        id: `job-${job.id}`,
-        title: job.title,
-        icon: taskIconForTitle(job.title),
-        streak: demoStreak(job.id * 3 + (job.assigneeId ?? 0)),
-        personName: job.assignee?.name ?? "Unassigned",
-        personColor: job.assignee?.color ?? "#3F6F5B",
-        kind: "job" as const,
-      })),
-    [filteredJobs],
-  );
+  const defaultPersonId =
+    selectedIds.length === 1 ? selectedIds[0] : people[0]?.id ?? null;
 
   return (
     <Page>
       <HubChrome
         title="Routines"
         subtitle="Morning · Afternoon · Evening · Jobs"
+        trailing={
+          <AddButton type="button" onClick={() => setAdding(true)}>
+            Add task
+          </AddButton>
+        }
       />
 
       <PersonCards
@@ -139,13 +114,15 @@ export function RoutinesBoard({
       />
 
       {BANDS.map((band) => {
-        const items = routineTasksByBand[band.id] ?? [];
+        const items = filteredTasks.filter((task) => task.band === band.id);
         return (
           <Section key={band.id}>
-            <SectionTitle>{band.label}</SectionTitle>
+            <SectionHeader>
+              <SectionTitle>{band.label}</SectionTitle>
+            </SectionHeader>
             <Grid>
               {items.length === 0 ? (
-                <Empty>No {band.label.toLowerCase()} routines.</Empty>
+                <Empty>No {band.label.toLowerCase()} tasks yet.</Empty>
               ) : (
                 items.map((task) => (
                   <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
@@ -156,21 +133,16 @@ export function RoutinesBoard({
         );
       })}
 
-      <Section>
-        <SectionTitle>Jobs</SectionTitle>
-        <Grid>
-          {jobTasks.length === 0 ? (
-            <Empty>No jobs for the selected kids.</Empty>
-          ) : (
-            jobTasks.map((task) => (
-              <TaskCard key={task.id} task={task} onOpen={setActiveTask} />
-            ))
-          )}
-        </Grid>
-      </Section>
-
       {activeTask ? (
         <TaskLogModal task={activeTask} onClose={() => setActiveTask(null)} />
+      ) : null}
+
+      {adding ? (
+        <TaskEditorModal
+          kids={people}
+          defaultPersonId={defaultPersonId}
+          onClose={() => setAdding(false)}
+        />
       ) : null}
     </Page>
   );

@@ -106,6 +106,33 @@ sqlite.exec(`
     checked_at TEXT NOT NULL,
     PRIMARY KEY (run_id, step_id)
   );
+
+  CREATE TABLE IF NOT EXISTS tasks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    icon TEXT NOT NULL DEFAULT '⭐',
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    band TEXT NOT NULL DEFAULT 'morning',
+    variants TEXT NOT NULL DEFAULT '["boolean"]',
+    star_reward INTEGER NOT NULL DEFAULT 1,
+    sort_order INTEGER NOT NULL DEFAULT 0,
+    active INTEGER NOT NULL DEFAULT 1,
+    created_at TEXT NOT NULL
+  );
+
+  CREATE TABLE IF NOT EXISTS task_logs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+    person_id INTEGER NOT NULL REFERENCES people(id) ON DELETE CASCADE,
+    log_date TEXT NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 1,
+    minutes INTEGER,
+    count_value INTEGER,
+    book_title TEXT,
+    stars_earned INTEGER NOT NULL DEFAULT 0,
+    notes TEXT NOT NULL DEFAULT '',
+    created_at TEXT NOT NULL
+  );
 `);
 
 try {

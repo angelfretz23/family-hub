@@ -107,6 +107,44 @@ export const routineStepChecks = sqliteTable("routine_step_checks", {
   checkedAt: text("checked_at").notNull(),
 });
 
+export const tasks = sqliteTable("tasks", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  title: text("title").notNull(),
+  icon: text("icon").notNull().default("⭐"),
+  personId: integer("person_id")
+    .notNull()
+    .references(() => people.id, { onDelete: "cascade" }),
+  band: text("band", {
+    enum: ["morning", "afternoon", "evening", "job"],
+  })
+    .notNull()
+    .default("morning"),
+  /** JSON array of TaskVariant values, e.g. ["boolean","time"]. */
+  variants: text("variants").notNull().default('["boolean"]'),
+  starReward: integer("star_reward").notNull().default(1),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: integer("active", { mode: "boolean" }).notNull().default(true),
+  createdAt: text("created_at").notNull(),
+});
+
+export const taskLogs = sqliteTable("task_logs", {
+  id: integer("id").primaryKey({ autoIncrement: true }),
+  taskId: integer("task_id")
+    .notNull()
+    .references(() => tasks.id, { onDelete: "cascade" }),
+  personId: integer("person_id")
+    .notNull()
+    .references(() => people.id, { onDelete: "cascade" }),
+  logDate: text("log_date").notNull(),
+  completed: integer("completed", { mode: "boolean" }).notNull().default(true),
+  minutes: integer("minutes"),
+  countValue: integer("count_value"),
+  bookTitle: text("book_title"),
+  starsEarned: integer("stars_earned").notNull().default(0),
+  notes: text("notes").notNull().default(""),
+  createdAt: text("created_at").notNull(),
+});
+
 export type Person = typeof people.$inferSelect;
 export type EventRow = typeof events.$inferSelect;
 export type Rule = typeof rules.$inferSelect;
@@ -114,3 +152,7 @@ export type Job = typeof jobs.$inferSelect;
 export type Routine = typeof routines.$inferSelect;
 export type RoutineStep = typeof routineSteps.$inferSelect;
 export type RoutineBand = "morning" | "afternoon" | "evening";
+export type Task = typeof tasks.$inferSelect;
+export type TaskLog = typeof taskLogs.$inferSelect;
+export type TaskBand = "morning" | "afternoon" | "evening" | "job";
+export type TaskVariant = "boolean" | "time" | "count" | "reading";

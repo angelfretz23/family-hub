@@ -1,8 +1,9 @@
 "use client";
 
 import styled from "styled-components";
+import type { TaskWithMeta } from "@/lib/tasks";
 
-const Card = styled.button`
+const Card = styled.button<{ $done: boolean }>`
   width: 100%;
   display: grid;
   grid-template-columns: auto 1fr auto;
@@ -12,7 +13,8 @@ const Card = styled.button`
   padding: 0.85rem 0.95rem;
   border-radius: ${({ theme }) => theme.sizes.radius};
   border: 1px solid ${({ theme }) => theme.colors.stroke};
-  background: ${({ theme }) => theme.colors.panelStrong};
+  background: ${({ theme, $done }) =>
+    $done ? "rgba(63, 111, 91, 0.14)" : theme.colors.panelStrong};
   box-shadow: ${({ theme }) => theme.shadow.soft};
   text-align: left;
   color: inherit;
@@ -58,55 +60,58 @@ const Sub = styled.span`
   font-weight: 600;
 `;
 
-const Streak = styled.span`
+const Trailing = styled.span`
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.3rem;
+  flex-shrink: 0;
+`;
+
+const Chip = styled.span`
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  min-height: 2.35rem;
-  padding: 0 0.7rem;
+  min-height: 2rem;
+  padding: 0 0.65rem;
   border-radius: 999px;
   background: ${({ theme }) => theme.colors.panel};
   border: 1px solid ${({ theme }) => theme.colors.stroke};
   font-weight: 750;
-  font-size: 1rem;
+  font-size: 0.95rem;
   font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
 `;
-
-const Fire = styled.span`
-  font-size: 1.05rem;
-  line-height: 1;
-`;
-
-export type TaskCardModel = {
-  id: string;
-  title: string;
-  icon: string;
-  streak: number;
-  personName: string;
-  personColor: string;
-  kind: "routine" | "job";
-};
 
 type TaskCardProps = {
-  task: TaskCardModel;
-  onOpen: (task: TaskCardModel) => void;
+  task: TaskWithMeta;
+  onOpen: (task: TaskWithMeta) => void;
 };
 
 export function TaskCard({ task, onOpen }: TaskCardProps) {
+  const done = Boolean(task.todayLog?.completed);
+
   return (
-    <Card type="button" onClick={() => onOpen(task)}>
-      <LeadingIcon $color={task.personColor} aria-hidden="true">
+    <Card type="button" $done={done} onClick={() => onOpen(task)}>
+      <LeadingIcon $color={task.person.color} aria-hidden="true">
         {task.icon}
       </LeadingIcon>
       <Copy>
         <Name>{task.title}</Name>
-        <Sub>{task.personName}</Sub>
+        <Sub>
+          {task.person.name}
+          {done ? " · Done today" : ""}
+        </Sub>
       </Copy>
-      <Streak aria-label={`${task.streak} day streak`}>
-        <Fire aria-hidden="true">🔥</Fire>
-        {task.streak}
-      </Streak>
+      <Trailing>
+        <Chip aria-label={`${task.starReward} stars`}>
+          <span aria-hidden="true">⭐</span>
+          {task.starReward}
+        </Chip>
+        <Chip aria-label={`${task.streak} day streak`}>
+          <span aria-hidden="true">🔥</span>
+          {task.streak}
+        </Chip>
+      </Trailing>
     </Card>
   );
 }
