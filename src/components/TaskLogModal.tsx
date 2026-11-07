@@ -50,13 +50,13 @@ const TitleBlock = styled.div`
 `;
 
 const Icon = styled.span<{ $color: string }>`
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.9rem;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 1.1rem;
   background: ${({ $color }) => $color};
   display: grid;
   place-items: center;
-  font-size: 1.45rem;
+  font-size: 2.15rem;
   flex-shrink: 0;
 `;
 

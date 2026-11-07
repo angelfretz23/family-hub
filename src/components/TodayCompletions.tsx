@@ -57,13 +57,13 @@ const Row = styled.div<{ $color: string }>`
 `;
 
 const Icon = styled.span<{ $color: string }>`
-  width: 2.35rem;
-  height: 2.35rem;
-  border-radius: 0.75rem;
+  width: 3.15rem;
+  height: 3.15rem;
+  border-radius: 0.9rem;
   background: ${({ $color }) => $color};
   display: grid;
   place-items: center;
-  font-size: 1.15rem;
+  font-size: 1.65rem;
   flex-shrink: 0;
 `;
 

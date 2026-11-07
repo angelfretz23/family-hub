@@ -32,14 +32,14 @@ const Card = styled.button<{ $done: boolean; $logged: boolean; $color: string }>
 `;
 
 const LeadingIcon = styled.span<{ $color: string; $logged: boolean }>`
-  width: 2.85rem;
-  height: 2.85rem;
-  border-radius: 0.9rem;
+  width: 3.75rem;
+  height: 3.75rem;
+  border-radius: 1.05rem;
   background: ${({ $logged, $color, theme }) =>
     $logged ? $color : theme.colors.panel};
   display: grid;
   place-items: center;
-  font-size: 1.35rem;
+  font-size: 2rem;
   flex-shrink: 0;
   box-shadow: inset 0 0 0 1px rgba(255, 250, 242, 0.18);
 `;
